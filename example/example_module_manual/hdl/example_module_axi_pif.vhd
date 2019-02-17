@@ -9,9 +9,7 @@ entity example_module_axi_pif is
 
   generic (
     -- AXI Bus Interface Generics
-    g_axi_baseaddr        : std_logic_vector(31 downto 0) := 32X"FFAA0000";
-    g_axi_baseaddr_offset : std_logic_vector(31 downto 0) := 32X"1000";
-    g_instance_num        : natural                       := 0);
+    g_axi_baseaddr        : std_logic_vector(31 downto 0) := 32X"FFAA0000");
   port (    
     -- AXI Bus Interface Ports
     axi_rw_regs    : out t_example_module_rw_regs    := c_example_module_rw_regs;
@@ -42,10 +40,7 @@ end example_module_axi_pif;
 
 architecture behavior of example_module_axi_pif is
 
-  constant C_BASEADDR_OFFSET : t_axi_addr :=
-    std_logic_vector(resize(unsigned(g_axi_baseaddr_offset) * to_unsigned(g_instance_num, 32), 32));
-  constant C_BASEADDR : t_axi_addr :=
-    std_logic_vector(unsigned(g_axi_baseaddr) + unsigned(C_BASEADDR_OFFSET));
+  constant C_BASEADDR : t_axi_addr := g_axi_baseaddr;
 
   -- internal signal for readback
   signal axi_rw_regs_i    : t_example_module_rw_regs := c_example_module_rw_regs;
