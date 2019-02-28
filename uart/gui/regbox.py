@@ -227,5 +227,4 @@ if __name__ == '__main__':
     reg_field_demo = regdemo
     root = tk.Tk()
     tt = RegToBoxes(root, reg_field_demo, 0, 0)
-
     root.mainloop()
