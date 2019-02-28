@@ -10,6 +10,7 @@ class Bus(object):
 
     """
     supported_bus = ['axi']
+    supported_reset = ['async', 'sync']
     default_comp_library = "work"
 
     def __init__(self, bus):
@@ -23,7 +24,7 @@ class Bus(object):
 
         if 'reset' not in bus:
             self.bus_reset = 'async'
-        elif bus['reset'] in ['async', 'sync']:
+        elif bus['reset'] in Bus.supported_reset:
             self.bus_reset = bus['reset']
         else:
             raise InvalidResetMode(bus['reset'])
