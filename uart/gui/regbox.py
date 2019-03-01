@@ -34,6 +34,15 @@ class RegToBoxes():
         self.write_field_names()
         self.make_field_borders()
 
+    def update(self, register):
+        register:Register
+        self.reg=register
+        self.nbits = self.reg.length
+        self.ndrawings = ceil(self.nbits / 16) if self.nbits else 1  # always 1 or more
+        self.drawings = [None] * self.ndrawings
+        self.drawings: List[RegBoxes]
+        self.init_drawings()
+
     def write_field_names(self):
         for field in self.reg.fields:
             field: Field
@@ -48,11 +57,11 @@ class RegToBoxes():
             rb = self.drawings[stop_index]
             rb: RegBoxes
             if middle:
-                x0 = rb.get_x_middle(16 - (field.pos_low%16),
-                                     15 - (field.pos_high%16))
+                x0 = rb.get_x_middle(16 - (field.pos_low % 16),
+                                     15 - (field.pos_high % 16))
                 anchor = tk.CENTER
             else:
-                x0 = ((16-(field.pos_high + 1)) % 16) * rb.box_w + (rb.box_w // 2)
+                x0 = ((16 - (field.pos_high + 1)) % 16) * rb.box_w + (rb.box_w // 2)
                 anchor = tk.W
 
             y0 = rb.box_h // 2
@@ -84,7 +93,6 @@ class RegToBoxes():
                 n = q - i * 16
                 if n < 16:
                     rb.fill(15 - q % 16)
-                    print("filling", q % 16, "of", i)
 
 
 class RegBoxes():

@@ -63,6 +63,7 @@ class Module:
 
         except Exception as e:
             print(e)
+            raise e
             exit(2)
 
     def add_register(self, reg):
