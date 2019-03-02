@@ -11,10 +11,10 @@ from uart.gui.regbox import RegToBoxes
 import json
 
 blank_reg_dict = OrderedDict({'name': "demo",
-                                  'mode': 'RW',
-                                  'type': 'slv',
-                                  'length': 30,
-                                  'description': "demo register"})
+                              'mode': 'RW',
+                              'type': 'slv',
+                              'length': 30,
+                              'description': "demo register"})
 blank_reg = Register(blank_reg_dict, 0x1, 32)
 blank_mod = OrderedDict({'name': "blank_mod",
                          'description': "blank description",
@@ -24,6 +24,7 @@ default_bus = Bus(OrderedDict({'type': 'axi',
                                'addr_width': 32}))
 NEWREG = "new register"
 NEWFIELD = "new field"
+
 
 class BusOptionCb:
     def __init__(self, row, column, values, text, parent):
@@ -40,6 +41,14 @@ class BusOptionCb:
 
     def set(self, text):
         self.box.set(text)
+
+    def setopts(self, opts):
+        self.box['values'] = opts
+
+    def addopt(self, opt):
+        opts = self.box['values']
+        opts.append(opt)
+        self.setopts(opts)
 
 
 class BusOptionEntry:
@@ -141,6 +150,7 @@ class BustGui():
         self.regmode = BusOptionCb(row=rtb.cnt(), column=0, values=Register.supported_modes, text="Register mode",
                                    parent=self.f3)
         self.reglen = BusOptionEntry(row=rtb.cnt(), column=0, value="32", text="Register Length", parent=self.f3)
+        self.regaddr = BusOptionEntry(row=rtb.cnt(), column=0, value="0x0", text="Register Address", parent=self.f3)
         # fields
         self.field_label = ttk.Label(self.f3, text="Field")
         self.field_label.grid(row=rtb.cnt(), column=0, sticky=tk.W)
@@ -156,9 +166,18 @@ class BustGui():
         self.update_field_butt.grid(row=rtb.cnt(), column=0, sticky=tk.E + tk.W, columnspan=2)
         # decor
         self.regbox = RegToBoxes(self.f3, blank_reg, row=0, col=2)
+        self.regbox_label = tk.StringVar()
+        self.regbox_label_box = tk.Label(self.f3, textvariable=self.regbox_label)
+        self.regbox_label_box.grid(row=3, column=2)
         # bindings.
-        self.regname.box.bind("<Return>", self.printsome)
-        self.regname.box.bind("<Button-1>", self.printsome)
+
+        self.regname.box.bind("<<ComboboxSelected>>", self.update_register_entries)
+        self.regdesc.box.bind("<<ComboboxSelected>>", self.update_register_entries)
+        self.regmode.box.bind("<<ComboboxSelected>>", self.update_register_entries)
+        self.regaddr.box.bind("<Return>", self.update_register_entries)
+        self.reglen.box.bind("<Return>", self.update_register_entries)
+        self.regname.box.bind("<Return>", self.update_register_entries)
+        # self.regname.box.bind("<Button-1>", self.printsome)
 
         # register stuff:
         self.mod = Module(blank_mod, default_bus)
@@ -167,6 +186,9 @@ class BustGui():
 
         self.initialize_mod_frame()
 
+        self.current_reg = None
+
+        self.current_reg: Register
         self.initialize_reg_frame()
 
         self.initialize_fields()
@@ -174,41 +196,69 @@ class BustGui():
         print(self.mod.__dict__)
         print([str(x) for x in self.mod.registers])
 
+    def update_register_entries(self, e):
+        print("updating register values")
+        self.current_reg: Register
+        self.current_reg.name = self.regname.get()
+        self.current_reg.description = self.regdesc.get()
+        self.current_reg.length = int(self.reglen.get(),0 )
+        self.current_reg.address = int(self.regaddr.get(), 0)
+        #
+        self.regbox_label.set(self.current_reg.name)
+        print(self.current_reg)
+        self.regbox.update(self.current_reg)
+
     def initialize_reg_frame(self):
         name = self.register_sel.get()
-        reg = self.get_register_by_name(name)
-        reg:Register
+        if name in self.get_field_names():
+            reg = self.get_register_by_name(name)
+            reg: Register
+        else:  # new register.
+            reg = Register({'name': "demo",
+                            'mode': 'RW',
+                            'type': 'default',
+                            'length': 32,
+                            'description': "demo register"}, 0x0, 32)
+
         self.regname.set(name)
         self.regdesc.set(reg.description)
         self.regmode.set(reg.mode)
         self.reglen.set(reg.length)
         self.regbox.update(reg)
+        self.current_reg = reg
+        self.regbox_label.set(self.current_reg.name)
+        self.regname.setopts([x.name for x in self.mod.registers])
+
 
     def initialize_fields(self):
-        rname = self.register_sel.get()
-        reg = self.get_register_by_name(rname)
-        reg:Register
+        reg = self.current_reg
+        reg: Register
         fieldnames = [x.name for x in reg.fields]
         self.fieldname.box['values'] = fieldnames + [NEWFIELD]
-        print("regname", rname, "fieldnames", fieldnames)
+        print("regname", reg.name, "fieldnames", fieldnames)
 
         fieldname = "not set"
         self.fieldname.set(fieldname)
-        if fieldnames: # are there field?
+        if fieldnames:  # are there field?
             field = self.get_field_by_name(reg.fields, fieldname)
             self.fieldtype.set(field.sig_type)
             self.fieldlen.set(field.length)
+            self.regbox.write_field_names()
         else:
             print("field is empty bitch")
+            self.fieldtype.set("none")
+            self.fieldlen.set("none")
+            self.regbox.write_regname()
 
+    def get_field_by_name(self, fields, name):
+        return list(filter(lambda x: x.name == name, fields))[0]
 
-    def get_field_by_name(self,fields, name):
-        return list(filter(lambda x:x.name==name, fields))[0]
-
-    def get_register_by_name(self,name):
+    def get_register_by_name(self, name):
         """get a specific register from the module register list. Works sort of like list.index"""
-        return list(filter(lambda x:x.name==name, self.mod.registers))[0]
+        return list(filter(lambda x: x.name == name, self.mod.registers))[0]
 
+    def get_field_names(self):
+        return [x.name for x in self.mod.registers]
 
     def initialize_mod_frame(self):
         self.baseaddr.set(self.mod.baseaddr)
@@ -263,6 +313,7 @@ class BustGui():
     def enter_regedit(self, e):
         e: tk.EventType.Selection
         print("editing register", e.char, e.__dict__)
+        self.initialize_reg_frame()
         newreg_name = self.register_sel.get()
         print(newreg_name)
         self.panes.select(Vars.regframe)
@@ -295,13 +346,13 @@ class BustGui():
             print("escape pressed!")
             self.panes.focus_force()  # for no entries out of tab
             self.escape_frame()
-        if e.keysym == "Tab" and e.state & 0b1:
-            old = self.panes.index(self.panes.select())
-            new = ((old + 1) % 2)
-            if new == 0:
-                self.panes.select(Vars.busframe)
-            if new == 1:
-                self.panes.select(Vars.moduleframe)
+        # if e.keysym == "Tab" and e.state & 0b1:
+        #     old = self.panes.index(self.panes.select())
+        #     new = ((old + 1) % 2)
+        #     if new == 0:
+        #         self.panes.select(Vars.busframe)
+        #     if new == 1:
+        #         self.panes.select(Vars.moduleframe)
 
     def keyup_esc(self, e):
         e: tk.EventType.KeyRelease

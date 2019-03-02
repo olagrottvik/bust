@@ -35,8 +35,10 @@ class RegToBoxes():
         self.make_field_borders()
 
     def update(self, register):
-        register:Register
-        self.reg=register
+        for rb in self.drawings:
+            rb: RegBoxes
+            rb.canvas.destroy()
+        self.reg = register
         self.nbits = self.reg.length
         self.ndrawings = ceil(self.nbits / 16) if self.nbits else 1  # always 1 or more
         self.drawings = [None] * self.ndrawings
@@ -67,6 +69,15 @@ class RegToBoxes():
             y0 = rb.box_h // 2
             print("x0", x0, text)
             rb.canvas.create_text(x0, y0, text=text, anchor=anchor)
+
+    def write_regname(self):
+        stop_index = self.reg.length // 16
+        rb = self.drawings[stop_index]
+
+        x0 = ((16 - self.reg.length) % 16) * rb.box_w + (rb.box_w // 2)
+        y0 = rb.box_h // 2
+
+        rb.canvas.create_text(x0, y0, text=self.reg.name, anchor=tk.W)
 
     def make_field_borders(self):
         for field in self.reg.fields:
