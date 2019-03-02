@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from uart.utils import indent_string
 from uart.utils import add_line_breaks
 from uart.field import Field
@@ -34,7 +35,7 @@ class Register:
         if 'length' in reg:
             tmp_length = reg['length']
         else:
-            tmp_length = 1      # Setting to 1, in case std_logic
+            tmp_length = 1  # Setting to 1, in case std_logic
 
         if 'type' in reg:
             self.sig_type = reg['type']
@@ -95,12 +96,23 @@ class Register:
             for i in self.fields:
                 string += "\n"
                 string += indent_string("Name: " + i['name'] + " Type: " +
-                                       i['type'] + " Length: " +
-                                       str(i['length']) +
-                                       " Reset: " + i['reset'])
+                                        i['type'] + " Length: " +
+                                        str(i['length']) +
+                                        " Reset: " + i['reset'])
 
         string += "\nDescription: " + self.description + "\n\n"
         return string
+
+    def get_JSON(self):
+        d = OrderedDict({'name': self.name,
+                         'mode': self.mode,
+                         'type': self.sig_type,
+                         'address': self.address,
+                         'reset': self.reset})
+        if self.fields:
+            d['fields'] = [f.get_dictionary() for f in self.fields]
+        d['description'] = self.description
+        return d
 
     def add_field(self, field):
         # Check that all required keys exist
@@ -113,7 +125,7 @@ class Register:
         # Make sure the field name is unique in this register
         field_names = [field.name for field in self.fields]
         is_unique(field['name'], field_names)
-        
+
         if field['type'] == 'slv':
             if 'length' not in field:
                 raise InvalidFieldFormat(self.name)
@@ -182,7 +194,7 @@ class ModuleDataBitsExceeded(Exception):
         msg += " in register " + register + "\n"
         msg += 'Module length: ' + str(mod_data_length) + '\n'
         msg += 'Register length: ' + str(reglength)
-        
+
         super().__init__(msg)
 
 

@@ -98,7 +98,6 @@ class BustGui():
         self.filemenu = tk.Menu(self.menu)
         self.menu.add_cascade(label="File", menu=self.filemenu)
         self.filemenu.add_command(label="Quit", command=self.root.quit)
-
         self.framewidth = self.root.winfo_screenwidth() // 2
         self.frameheight = (9 * self.framewidth) // 16
         # panes. Setting the size to hor resolution // 3 !
@@ -149,8 +148,17 @@ class BustGui():
         self.regdesc = BusOptionEntry(row=rtb.cnt(), column=0, value="description", text="Description", parent=self.f3)
         self.regmode = BusOptionCb(row=rtb.cnt(), column=0, values=Register.supported_modes, text="Register mode",
                                    parent=self.f3)
+        self.regtype = BusOptionCb(row=rtb.cnt(), column=0, values=Register.supported_types, text="Register type",
+                                   parent=self.f3)
         self.reglen = BusOptionEntry(row=rtb.cnt(), column=0, value="32", text="Register Length", parent=self.f3)
         self.regaddr = BusOptionEntry(row=rtb.cnt(), column=0, value="0x0", text="Register Address", parent=self.f3)
+        self.regrst = BusOptionEntry(row=rtb.cnt(), column=0, value="0x0", text="Register Reset", parent=self.f3)
+
+        # self.update_reg_butt = ttk.Button(self.f3, text="Update Register", command=self.update_register_entries)
+        # self.update_reg_butt.grid(row=rtb.cnt(), column=0, sticky=tk.E + tk.W, columnspan=2)
+        self.store_reg_butt = ttk.Button(self.f3, text="Update Register", command=self.insert_or_update_register_data)
+        self.store_reg_butt.grid(row=rtb.cnt(), column=0, sticky=tk.E + tk.W, columnspan=2)
+
         # fields
         self.field_label = ttk.Label(self.f3, text="Field")
         self.field_label.grid(row=rtb.cnt(), column=0, sticky=tk.W)
@@ -162,6 +170,8 @@ class BustGui():
         self.fieldtype = BusOptionCb(row=rtb.cnt(), column=0, values=Field.supported_types, text="field type",
                                      parent=self.f3)
         self.fieldlen = BusOptionEntry(row=rtb.cnt(), column=0, value="0", text="Field Length", parent=self.f3)
+        self.fieldrst = BusOptionEntry(row=rtb.cnt(), column=0, value="0x0", text="Field Reset", parent=self.f3)
+        self.fielddesc = BusOptionEntry(row=rtb.cnt(), column=0, value="", text="Field Description", parent=self.f3)
         self.update_field_butt = ttk.Button(self.f3, text="Update Field", command=self.update_field)
         self.update_field_butt.grid(row=rtb.cnt(), column=0, sticky=tk.E + tk.W, columnspan=2)
         # decor
@@ -174,9 +184,12 @@ class BustGui():
         self.regname.box.bind("<<ComboboxSelected>>", self.update_register_entries)
         self.regdesc.box.bind("<<ComboboxSelected>>", self.update_register_entries)
         self.regmode.box.bind("<<ComboboxSelected>>", self.update_register_entries)
+        self.regtype.box.bind("<<ComboboxSelected>>", self.update_register_entries)
         self.regaddr.box.bind("<Return>", self.update_register_entries)
+        self.regaddr.box.bind("<<Modified>>", self.update_register_entries)
         self.reglen.box.bind("<Return>", self.update_register_entries)
         self.regname.box.bind("<Return>", self.update_register_entries)
+        self.fieldname.box.bind("<<ComboboxSelected>>", self.load_field_entries)
         # self.regname.box.bind("<Button-1>", self.printsome)
 
         # register stuff:
@@ -196,21 +209,60 @@ class BustGui():
         print(self.mod.__dict__)
         print([str(x) for x in self.mod.registers])
 
-    def update_register_entries(self, e):
+    def insert_or_update_register_data(self):
+        self.update_register_entries()
+
+        rnames = [x.name for x in self.mod.registers]
+        if self.current_reg.name in rnames:
+            print("register already existing. Overwriting!")
+            index = rnames.index(self.current_reg.name)
+            self.mod.registers[index] = self.current_reg
+        else:
+            print("new register", self.current_reg.name, "appended to module")
+            self.mod.registers.append(self.current_reg)
+
+        self.initialize_mod_frame()
+
+        # this will use the Module object to raise any errors with the updated register
+        a = json.loads(self.mod.return_JSON(True))
+        b = Module(mod=a, bus=self.bus)
+
+    def update_register_entries(self, e=None):
         print("updating register values")
+        # variables
         self.current_reg: Register
         self.current_reg.name = self.regname.get()
         self.current_reg.description = self.regdesc.get()
-        self.current_reg.length = int(self.reglen.get(),0 )
+        self.current_reg.mode = self.regmode.get().lower()
+        self.current_reg.length = int(self.reglen.get(), 0)
         self.current_reg.address = int(self.regaddr.get(), 0)
-        #
-        self.regbox_label.set(self.current_reg.name)
+        self.current_reg.reset = self.regrst.get()
+        self.current_reg.sig_type = self.regtype.get()
+
+        # gui stuff
+        self.update_regbox()
         print(self.current_reg)
+
+    def load_field_entries(self, e=None):
+        field = self.get_field_by_name(self.current_reg.fields, self.fieldname.get())
+        if field:
+            self.fieldtype.set(field.sig_type)
+            self.fieldlen.set(str(field.length))
+            self.fieldrst.set(field.reset)
+            self.fielddesc.set(field.description)
+
+    def update_regbox(self):
+        self.regbox_label.set(self.current_reg.name)
         self.regbox.update(self.current_reg)
+        if self.current_reg.fields:
+            self.regbox.write_field_names()
+        else:
+            # just a slv, default or sl reg!
+            self.regbox.write_regname()
 
     def initialize_reg_frame(self):
         name = self.register_sel.get()
-        if name in self.get_field_names():
+        if name in self.get_reg_names():
             reg = self.get_register_by_name(name)
             reg: Register
         else:  # new register.
@@ -228,7 +280,6 @@ class BustGui():
         self.current_reg = reg
         self.regbox_label.set(self.current_reg.name)
         self.regname.setopts([x.name for x in self.mod.registers])
-
 
     def initialize_fields(self):
         reg = self.current_reg
@@ -257,8 +308,11 @@ class BustGui():
         """get a specific register from the module register list. Works sort of like list.index"""
         return list(filter(lambda x: x.name == name, self.mod.registers))[0]
 
-    def get_field_names(self):
+    def get_reg_names(self):
         return [x.name for x in self.mod.registers]
+
+    def get_field_names(self):
+        return [x.name for x in self.current_reg.fields]
 
     def initialize_mod_frame(self):
         self.baseaddr.set(self.mod.baseaddr)
@@ -283,13 +337,52 @@ class BustGui():
         self.data_width.set(self.mod.data_width)
         self.address_width.set(self.mod.addr_width)
 
+        self.update_json_bus()
+
     def update_field(self):
-        print("update field")
+        self.update_register_entries()  # get all the newest info
+
+        print("current reg is ", self.current_reg.name)
         name = self.fieldname.get()
         is_valid_VHDL(name)
         type = self.fieldtype.get()
         assert type in Field.supported_types, str(type) + "not in supported field types"
         # fields are made by fields.append(field_dict)
+        if name in self.get_field_names():
+            # update case
+            idx = self.get_field_names().index(name)
+            pos_low = self.current_reg.fields[idx].pos_low
+        else:
+            # new case
+            pos_low = self.current_reg.fields[-1].pos_high + 1 if self.current_reg.fields else 0
+
+        f = Field(name=name, sig_type=self.fieldtype.get(),
+                  length=int(self.fieldlen.get(), 0),
+                  reset=hex(int(self.fieldrst.get(), 0)),
+                  description=self.fielddesc.get(),
+                  pos_low=pos_low)
+
+        if name in self.get_field_names():
+            print("updating field", name)
+            print("index", idx)
+            self.current_reg.fields[idx] = f
+            pos_low_prev=0
+            # update ALL field indices
+            for i, field in enumerate(self.current_reg.fields):
+                field: Field
+                if field.sig_type == 'sl':
+                    field.length = 1
+                self.current_reg.fields[i].pos_low = pos_low_prev
+                high = field.pos_low + field.length - 1
+                self.current_reg.fields[i].pos_high = high
+                pos_low_prev = high + 1
+        else:
+            print("appending field", name)
+            self.current_reg.fields.append(f)
+
+        # gui stuff
+        self.fieldname.setopts(self.get_field_names())
+        self.update_regbox()  # for printing and stuff
 
     def pack_panes(self):
         self.p.add(self.f1_cont)
@@ -319,25 +412,18 @@ class BustGui():
         self.panes.select(Vars.regframe)
         self.regname.box.set(self.register_sel.get())
 
-        regdemo = Register(OrderedDict({'name': "demo",
-                                        'mode': 'RW',
-                                        'type': 'default',
-                                        'length': 31,
-                                        'description': "demo register"}), 0xff, 32)
-        # self.update_disp_reg_names(['reg a', 'reg b', regdemo.__str__()])
-
     def update_json_bus(self):
         bus_settings = OrderedDict({'type': self.bus_sel_type.get(),
                                     'reset': self.reset_mode.get(),
                                     'comp_library': self.comp_library.get(),
-                                    'data_width': self.data_width.get(),
-                                    'addr_width': self.address_width.get()})
+                                    'data_width': int(self.data_width.get(), 0),
+                                    'addr_width': int(self.address_width.get(), 0)})
         self.bus = Bus(bus_settings)
         print(bus_settings)
-        print(json.dumps(self.bus.return_JSON()))
-        print(self.bus.return_bus_pkg_VHDL())
-        print(self.bus.return_axi_pif_VHDL())
-        print(self.bus.return_bus_pif_VHDL())
+        # print(json.dumps(self.bus.return_JSON()))
+        # print(self.bus.return_bus_pkg_VHDL())
+        # print(self.bus.return_axi_pif_VHDL())
+        # print(self.bus.return_bus_pif_VHDL())
 
     def keyup(self, e):
         e: tk.EventType.KeyRelease

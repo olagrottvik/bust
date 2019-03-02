@@ -71,12 +71,13 @@ class RegToBoxes():
             rb.canvas.create_text(x0, y0, text=text, anchor=anchor)
 
     def write_regname(self):
-        stop_index = self.reg.length // 16
+        stop_index =abs((self.reg.length-1) // 16 )# bug ! 32 -> 2
         rb = self.drawings[stop_index]
 
         x0 = ((16 - self.reg.length) % 16) * rb.box_w + (rb.box_w // 2)
         y0 = rb.box_h // 2
-
+        if self.reg.length == 1:
+            x0 -= rb.box_w//2
         rb.canvas.create_text(x0, y0, text=self.reg.name, anchor=tk.W)
 
     def make_field_borders(self):
