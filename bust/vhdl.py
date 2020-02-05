@@ -9,7 +9,7 @@ def sync_process(clk_name, reset_name, process_name, reset_string, logic_string,
     s = process_name + " : process(" + clk_name + ")\n"
     if variables is not None:
         for var in variables:
-            s += "variable " + var + ";\n"
+            s += indent_string("variable " + var + ";\n")
     s += "begin\n"
     s += indent_string("if rising_edge(" + clk_name + ") then\n")
     s += indent_string("if " + reset_name + " = ", 2)
