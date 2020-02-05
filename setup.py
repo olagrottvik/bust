@@ -26,7 +26,13 @@ setup(
     install_requires=[
         'docopt>=0.6.2',
         'pylatexenc>=1.2',
+        'curses-menu',
+        'PrettyTable'
       ],
+    extras_require={
+        'dev': ["pytest", "pylint"],
+        'gui': [],
+        },
     python_requires='~=3.4', # For Python 3.4 and up, but not yet Python 4
     description=description,
     long_description=long_description,
