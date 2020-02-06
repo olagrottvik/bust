@@ -118,7 +118,7 @@ class Module:
         return True
 
     def is_address_byte_based(self, addr):
-        """Returns True if address is dividable by number of bytes in module data width"""
+        """Returns True if address is divisible by number of bytes in module data width"""
 
         if addr % (self.data_width / 8) == 0:
             return True
