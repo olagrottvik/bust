@@ -41,7 +41,6 @@ class ModuleVHDLGen():
         s = indent_string("-- PULSE Register Record Definitions\n\n")
         # Create all types for PULSE registers with records
         for reg in self.registers:
-            print(reg.mode)
             if reg.mode == "pulse" and reg.sig_type == "fields":
                 s += self.record_fields_definition_vhdl(reg)
         # The PULSE register record type
