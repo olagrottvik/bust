@@ -3,9 +3,9 @@ from bust.vhdl import lib_declaration
 
 
 class ModuleVHDLGen():
-    def __init__(self,name, bus, regs, data_width, addr_width):
+    def __init__(self, name, bus_gen, regs, data_width, addr_width):
         self.name = name
-        self.bus = bus
+        self.bus = bus_gen
         self.registers = regs
         self.data_width = data_width
         self.addr_width = addr_width
@@ -296,10 +296,10 @@ class ModuleVHDLGen():
         par = '-- User Ports Start\n\n'
         par += '-- User Ports End\n'
         par += '-- {} Bus Interface Ports\n'.format(self.bus.bus_type.upper())
-        par += '{}_{}      : in  std_logic;\n'.format(self.bus.short_name, self.bus.get_clk_name())
-        par += '{}_{} : in  std_logic;\n'.format(self.bus.short_name, self.bus.get_reset_name())
-        par += '{}_in       : in  {};\n'.format(self.bus.short_name, self.bus.get_in_type())
-        par += '{}_out      : out {}\n'.format(self.bus.short_name, self.bus.get_out_type())
+        par += '{}_{}      : in  std_logic;\n'.format(self.bus.short_name, self.bus.clk_name)
+        par += '{}_{} : in  std_logic;\n'.format(self.bus.short_name, self.bus.reset_name)
+        par += '{}_in       : in  {};\n'.format(self.bus.short_name, self.bus.in_type)
+        par += '{}_out      : out {}\n'.format(self.bus.short_name, self.bus.out_type)
         par += ');\n'
         s += indent_string(par, 2)
         s += '\n'
@@ -313,7 +313,7 @@ class ModuleVHDLGen():
         s += indent_string(par)
 
         s += indent_string("-- " + self.bus.bus_type.upper() + " output signal for user readback\n")
-        par = "signal {}_out_i : {};\n".format(self.bus.short_name, self.bus.get_out_type())
+        par = "signal {}_out_i : {};\n".format(self.bus.short_name, self.bus.out_type)
         s += indent_string(par)
 
         s += indent_string("-- Register Signals\n")
@@ -367,8 +367,8 @@ class ModuleVHDLGen():
         if self.n_pulse_regs > 0:
             par += self.bus.short_name + '_pulse_regs      => ' + self.bus.short_name + '_pulse_regs,\n'
 
-        par += self.bus.get_clk_name() + '                 => ' + self.bus.short_name + '_' + self.bus.get_clk_name() + ',\n'
-        par += self.bus.get_reset_name() + '            => ' + self.bus.short_name + '_' + str.strip(self.bus.get_reset_name()) + ',\n'
+        par += self.bus.clk_name + '                 => ' + self.bus.short_name + '_' + self.bus.clk_name + ',\n'
+        par += self.bus.reset_name + '            => ' + self.bus.short_name + '_' + str.strip(self.bus.reset_name) + ',\n'
         par += self.bus.get_instantiation(self.name, inter)
 
         par += ');\n'

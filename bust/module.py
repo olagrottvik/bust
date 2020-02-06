@@ -248,9 +248,6 @@ class Module:
         return gen_obj.get_instantiation(instance_name,intern_out)
 
     def _get_vhdl_gen_obj(self):
-        o = ModuleVHDLGen(name=self.name,
-                          bus = self.bus,
-                          regs=self.registers,
-                          data_width=self.data_width,
-                          addr_width=self.addr_width)
+        o = ModuleVHDLGen(name=self.name, bus_gen=self.bus.get_VHDL_generator(), regs=self.registers,
+                          data_width=self.data_width, addr_width=self.addr_width)
         return o
