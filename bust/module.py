@@ -243,7 +243,7 @@ class Module:
         return gen_obj.return_module_VHDL()
 
     def get_instantiation(self, instance_name, intern_out = False):
-        """also a VHDL method"""
+        """Also a VHDL method."""
         gen_obj = self._get_vhdl_gen_obj()
         return gen_obj.get_instantiation(instance_name,intern_out)
 

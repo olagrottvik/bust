@@ -4,6 +4,7 @@ from bust.vhdl import lib_declaration
 
 class ModuleVHDLGen():
     def __init__(self, name, bus_gen, regs, data_width, addr_width):
+        """Code generator for the Module module."""
         self.name = name
         self.bus = bus_gen
         self.registers = regs
@@ -66,6 +67,7 @@ class ModuleVHDLGen():
         s += self.name + "_pulse_regs := (\n"
         gen = [reg for reg in self.registers if reg.mode == 'pulse']
         s += self.get_field_declarations(gen)
+        s += '\n'
         return s
 
     def get_ro_regs_vhdl(self):
@@ -109,38 +111,11 @@ class ModuleVHDLGen():
         s += indent_string("constant c_") + self.name + "_ro_regs : t_"
         s += self.name + "_ro_regs := (\n"
         gen = [reg for reg in self.registers if reg.mode == 'ro']
-        for i, reg in enumerate(gen):
-            par = ''
-            par += reg.name + ' => '
-
-            # RO default values must be declared
-            if reg.sig_type == 'default' or reg.sig_type == 'slv':
-                if reg.reset == "0x0":
-                    par += "(others => '0')"
-                else:
-                    par += str(reg.length) + 'X"'
-                    par += format(int(reg.reset, 16), 'X') + '"'
-
-            elif reg.sig_type == 'fields':
-                par += self.get_field_reset_value(reg)
-
-            elif reg.sig_type == 'sl':
-                par += "'" + format(int(reg.reset, 16), 'X') + "'"
-
-            else:
-                raise RuntimeError(
-                    "Something went wrong... What now?" + reg.sig_type)
-
-            if i < len(gen) - 1:
-                par += ','
-            else:
-                par += ');'
-            par += '\n'
-
-            s += indent_string(par, 2)
+        s += self.get_field_declarations(gen)
         return s
 
-    def get_field_reset_value(self, reg):
+    @staticmethod
+    def get_field_reset_value(reg):
         par = ""
         if len(reg.fields) > 1:
             par += '(\n'
@@ -197,6 +172,7 @@ class ModuleVHDLGen():
         s += self.name + "_rw_regs := (\n"
         gen = [reg for reg in self.registers if reg.mode == 'rw']
         s += self.get_field_declarations(gen)
+        s += '\n'
         return s
 
     def get_field_declarations(self, gen):
@@ -205,7 +181,7 @@ class ModuleVHDLGen():
             par = ''
             par += reg.name + ' => '
 
-            # RW default values must be declared
+            # default values must be declared
             if reg.sig_type == 'default' or reg.sig_type == 'slv':
                 if reg.reset == "0x0":
                     par += "(others => '0')"
@@ -214,11 +190,13 @@ class ModuleVHDLGen():
                     par += format(int(reg.reset, 16), 'X') + '"'
 
             elif reg.sig_type == 'fields':
-
                 par += self.get_field_reset_value(reg)
 
             elif reg.sig_type == 'sl':
                 par += "'" + format(int(reg.reset, 16), 'X') + "'"
+            else:
+                raise RuntimeError(
+                    "Something went wrong... What now?" + reg.sig_type)
 
             if i < len(gen) - 1:
                 par += ','
@@ -227,7 +205,6 @@ class ModuleVHDLGen():
             par += '\n'
 
             s += indent_string(par, 2)
-        s += '\n'
         return s
 
     def record_fields_definition_vhdl(self, reg):

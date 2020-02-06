@@ -4,6 +4,7 @@ from bust.vhdl import async_process, sync_process, comb_process, comb_process_wi
 
 class BusVHDLGen():
     def __init__(self, bus_type, comp_library, data_width, addr_width, ):
+        """Code generator for the Bus module."""
         self.bus_type = bus_type
         self.comp_library = comp_library
         self.clk_name = "clk"
@@ -24,7 +25,6 @@ class BusVHDLGen():
             self.bus_reset = 'sync'
             self.reset_active_low = False
 
-
         if self.reset_active_low is True:
             if self.bus_reset == "async":
                 self.reset_name = "areset_n"
@@ -36,10 +36,7 @@ class BusVHDLGen():
             else:
                 self.reset_name = "reset   "
 
-
-
     def return_bus_pkg_VHDL(self):
-
         if self.bus_type == 'axi':
 
             s = 'library ieee;\n'
@@ -786,7 +783,7 @@ class BusVHDLGen():
 
             if self.bus_reset == "async":
                 s += indent_string(async_process(clk_name, reset_name, "p_stall",
-                                reset_string, logic_string, self.reset_active_low, variables))
+                                    reset_string, logic_string, self.reset_active_low, variables))
 
             elif self.bus_reset == "sync":
                 s += indent_string(sync_process(clk_name, reset_name, "p_stall",
