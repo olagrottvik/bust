@@ -1,9 +1,8 @@
 from collections import OrderedDict
 
 from bust.bus_vhdl_gen import BusVHDLGen
-from bust.utils import indent_string
-from bust.vhdl import async_process, sync_process, comb_process, comb_process_with_reset
-from bust.exceptions import InvalidBusType, InvalidResetMode
+from bust.exceptions import InvalidBusType
+
 
 class Bus(object):
     """! @brief Managing bus information
@@ -33,11 +32,9 @@ class Bus(object):
         if self.bus_type == 'axi':
             self.short_name = 'axi'
             self.bus_reset = 'async'
-            self.reset_active_low = True
         elif self.bus_type == 'ipbus':
             self.short_name = 'ipb'
             self.bus_reset = 'sync'
-            self.reset_active_low = False
 
 
     def return_JSON(self):

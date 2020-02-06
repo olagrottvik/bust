@@ -6,14 +6,11 @@ Contains the Module class and relevant exceptions
 import json
 from collections import OrderedDict
 
+from bust.exceptions import InvalidAddress, InvalidRegister
 from bust.module_vhdl_gen import ModuleVHDLGen
-from bust.utils import indent_string
-from bust.utils import add_line_breaks
-from bust.exceptions import InvalidAddress
-from bust.exceptions import InvalidRegister
 from bust.register import Register
-from bust.vhdl import is_valid_VHDL
-from bust.vhdl import is_unique
+from bust.utils import add_line_breaks, indent_string
+from bust.vhdl import is_unique, is_valid_VHDL
 
 
 class Module:
@@ -61,8 +58,6 @@ class Module:
                 raise NotImplementedError("Stall cycles has not been implemented for other buses than IPBus...")
             self.add_register(reg)
 
-
-
     def get_version(self):
         if self.version is None:
             return ""
@@ -87,59 +82,6 @@ class Module:
                 self.registers.append(Register(reg, addr, self.data_width))
         else:
             raise InvalidRegister(reg)
-
-
-
-    def return_JSON(self, include_address=False):
-        """! @brief Returns JSON string
-
-        """
-        dic = OrderedDict()
-        mod = OrderedDict()
-        dic["settings"] = self.settings.return_JSON()
-        dic["bus"] = self.bus.return_JSON()
-        dic["module"] = OrderedDict()
-
-        mod["name"] = self.name
-        mod["description"] = self.description
-        if self.version is not None:
-            mod["version"] = self.version
-        if self.git_hash is not None:
-            mod["git_hash"] = self.git_hash
-
-
-        mod["register"] = []
-
-        for i, reg in enumerate(self.registers):
-            reg_dic = OrderedDict()
-
-            reg_dic["name"] = reg.name
-            reg_dic["mode"] = reg.mode
-            if reg.mode == 'pulse':
-                reg_dic["pulse_cycles"] = reg.pulse_cycles
-            reg_dic["type"] = reg.sig_type
-
-            if include_address:
-                reg_dic["address"] = str(hex(reg.address))
-
-            if (reg.sig_type != "default" and reg.sig_type != "fields" and
-                    reg.sig_type != "sl"):
-                reg_dic["length"] = reg.length
-
-            if reg.sig_type != "fields":
-                reg_dic["reset"] = reg.reset
-
-            if reg.sig_type == "fields" and len(reg.fields) > 0:
-                reg_dic["fields"] = []
-                for field in reg.fields:
-                    reg_dic["fields"].append(field.return_dic())
-
-            reg_dic["description"] = reg.description
-
-            mod["register"].append(reg_dic)
-
-        dic["module"] = mod
-        return json.dumps(dic, indent=4)
 
     def get_next_address(self):
         """! @brief Will get the next address based on the byte-addressed scheme
@@ -176,7 +118,7 @@ class Module:
         return True
 
     def is_address_byte_based(self, addr):
-        """Returns True if address is divisable by number of bytes in module data width"""
+        """Returns True if address is dividable by number of bytes in module data width"""
 
         if addr % (self.data_width / 8) == 0:
             return True
@@ -233,6 +175,57 @@ class Module:
         for i, reg in enumerate(self.registers):
             string += indent_string(str(reg), 1)
         return string
+
+    def return_JSON(self, include_address=False):
+        """! @brief Returns JSON string
+
+        """
+        dic = OrderedDict()
+        mod = OrderedDict()
+        dic["settings"] = self.settings.return_JSON()
+        dic["bus"] = self.bus.return_JSON()
+        dic["module"] = OrderedDict()
+
+        mod["name"] = self.name
+        mod["description"] = self.description
+        if self.version is not None:
+            mod["version"] = self.version
+        if self.git_hash is not None:
+            mod["git_hash"] = self.git_hash
+
+
+        mod["register"] = []
+
+        for i, reg in enumerate(self.registers):
+            reg_dic = OrderedDict()
+
+            reg_dic["name"] = reg.name
+            reg_dic["mode"] = reg.mode
+            if reg.mode == 'pulse':
+                reg_dic["pulse_cycles"] = reg.pulse_cycles
+            reg_dic["type"] = reg.sig_type
+
+            if include_address:
+                reg_dic["address"] = str(hex(reg.address))
+
+            if (reg.sig_type != "default" and reg.sig_type != "fields" and
+                    reg.sig_type != "sl"):
+                reg_dic["length"] = reg.length
+
+            if reg.sig_type != "fields":
+                reg_dic["reset"] = reg.reset
+
+            if reg.sig_type == "fields" and len(reg.fields) > 0:
+                reg_dic["fields"] = []
+                for field in reg.fields:
+                    reg_dic["fields"].append(field.return_dic())
+
+            reg_dic["description"] = reg.description
+
+            mod["register"].append(reg_dic)
+
+        dic["module"] = mod
+        return json.dumps(dic, indent=4)
 
     def return_module_pkg_VHDL(self):
         gen_obj = self._get_vhdl_gen_obj()
