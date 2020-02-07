@@ -28,7 +28,7 @@ class Bus(object):
         else:
             self.comp_library = Bus.default_comp_library
 
-        # Set reset type based on bus
+        # Set reset type and short name based on bus
         if self.bus_type == 'axi':
             self.short_name = 'axi'
             self.bus_reset = 'async'
