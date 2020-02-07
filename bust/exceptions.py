@@ -46,7 +46,7 @@ class InvalidBusType(RuntimeError):
 
 
 class InvalidResetMode(RuntimeError):
-    """Documentation for InvalidResetMode.
+    """ @brief Raised when an invalid reset mode is set.
 
     """
     def __init__(self, reset):
