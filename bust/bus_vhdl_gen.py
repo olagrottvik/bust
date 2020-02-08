@@ -674,7 +674,8 @@ class BusVHDLGen():
         if mod.has_stall_regs():
             logic_string += "rd_stall_ack <= '0';\n"
 
-        logic_string += "\nif (reg_rden) then\n\n"
+        logic_string += "\nif (reg_rden) then\n"
+        logic_string += indent_string("reg_data_out <= (others => '0');\n\n")
 
         gen = [reg for reg in mod.registers
                if reg.mode == "ro" or reg.mode == "rw"]

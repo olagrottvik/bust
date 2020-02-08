@@ -31,7 +31,6 @@ setup(
       ],
     extras_require={
         'dev': ["pytest", "pylint"],
-        'gui': [],
         },
     python_requires='~=3.4', # For Python 3.4 and up, but not yet Python 4
     description=description,
