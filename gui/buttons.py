@@ -2,7 +2,7 @@ import tkinter as tk
 from collections import defaultdict
 from tkinter import ttk as ttk
 
-from gui.gui_defs import GuiGlobals, GuiComponent
+from gui.gui_defs import GuiComponent
 from gui.buttons_decl import frame_buttons
 
 
@@ -41,6 +41,16 @@ class GuiButtons(GuiComponent):
                 self.buttons_all.append(b)
                 self.buttons_dict[framename][text] = b
 
+    @staticmethod
+    def set_buttons(button_vals, buttons_in_frame):
+        for k, v in buttons_in_frame.items():
+            if k in button_vals:
+                tmp = button_vals[k]
+                if type(tmp) is tuple:
+                    v.setvalue(*tmp)
+                else:
+                    v.setvalue(tmp)
+
     def _get_button_dicts(self, name):
         """lookup for buttons"""
         buttons = {}
@@ -57,7 +67,6 @@ class ButtonTypes:
 def dispatch_button(button):
     """manual dynamic dispatch"""
     t = [impl for impl in ButtonTypes() if button == impl.type][0]
-    print("from", button, "selected", t)
     return t
 
 
@@ -72,6 +81,11 @@ class SingleButton:
         self.label.grid(row=row + self.row_offset, column=col, sticky=tk.W + tk.E)
         self.box.grid(row=row + self.row_offset, column=col + 1, pady=2, padx=2, sticky=tk.W + tk.E)
 
+    def getvalue(self):
+        return None
+
+    def setvalue(self, value, *args):
+        pass
 
 class StringButton(SingleButton):
     type = "string"
@@ -80,6 +94,13 @@ class StringButton(SingleButton):
         self.box = ttk.Entry(parent)
         self.label = ttk.Label(parent, text=text)
 
+    def getvalue(self):
+        return self.box.get()
+
+    def setvalue(self,value, *args):
+        self.box.delete(0, tk.END)
+        self.box.insert(0, str(value))
+
 
 class DropDownButton(SingleButton):
     type = "dropdown"
@@ -87,7 +108,24 @@ class DropDownButton(SingleButton):
     def __init__(self, parent, text):
         self.box = ttk.Combobox(parent)
         self.label = ttk.Label(parent, text=text)
+        self._opts = [] # must be a list to keep ordering.
 
+    def getvalue(self):
+        return self.box.get()
+
+    def setvalue(self, value, *args):
+        try:
+            # duck typing for optlist
+            optlist = args[0]
+            print("optlist",optlist)
+            for elem in optlist:
+                if elem not in self._opts:
+                    self._opts.append(str(elem))
+        except IndexError:
+            pass
+        self.box['values'] = list(self._opts)
+        self.box.set(value)
+# ('axi', ['axi', 'ipbus'])
 
 class SeparatorButton(SingleButton):
     type = "separator"
@@ -102,12 +140,15 @@ class SeparatorButton(SingleButton):
         SingleButton.row_offset += 1
 
 if __name__ == "__main__":
-    from gui.frames import GuiFrames
-    from gui.menus import GuiMenus
+    pass
+    # from gui.frames import GuiFrames
+    # from gui.menus import GuiMenus
+    #
+    # GuiMenus().cfg()
+    # guiframes = GuiFrames()
+    # guiframes.cfg()
+    # bg = GuiButtons(guiframes.buttonholders)
+    # bg.cfg()
+    # GuiGlobals().root.mainloop()
 
-    GuiMenus().cfg()
-    guiframes = GuiFrames()
-    guiframes.cfg()
-    bg = GuiButtons(guiframes.buttonholders)
-    bg.cfg()
-    GuiGlobals().root.mainloop()
+
