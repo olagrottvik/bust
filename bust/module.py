@@ -132,6 +132,21 @@ class Module:
             self.addresses.append(addr)
             reg.address = addr
 
+    def update(self):
+        """For use with gui updates that affect the attrs of the object."""
+        is_valid_VHDL(self.name)
+        self.description_with_breaks = add_line_breaks(self.description, 25)
+
+        if self.bus.bus_type == 'axi': # axi usually is byte addressable
+            self.byte_addressable = True
+        else:
+            self.byte_addressable = False
+
+        for reg in self.registers:
+            if 'stall_cycles' in reg and self.bus.bus_type != 'ipbus':
+                raise NotImplementedError("Stall cycles has not been implemented for other buses than IPBus...")
+            self.register_valid(reg)
+
     def register_valid(self, reg):
         """Returns True if register is semi-valid. May raise exceptions which must be catched"""
 

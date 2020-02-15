@@ -1,7 +1,7 @@
 import tkinter as tk
 from collections import namedtuple
 
-from gui.singleton import Singleton
+from gui.gui_utils import Singleton
 
 
 @Singleton

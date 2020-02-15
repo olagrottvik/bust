@@ -117,7 +117,6 @@ class DropDownButton(SingleButton):
         try:
             # duck typing for optlist
             optlist = args[0]
-            print("optlist",optlist)
             for elem in optlist:
                 if elem not in self._opts:
                     self._opts.append(str(elem))
@@ -125,7 +124,6 @@ class DropDownButton(SingleButton):
             pass
         self.box['values'] = list(self._opts)
         self.box.set(value)
-# ('axi', ['axi', 'ipbus'])
 
 class SeparatorButton(SingleButton):
     type = "separator"
