@@ -1,5 +1,3 @@
-import copy
-
 from itertools import chain
 
 from gui.frames import Frame1, Frame2, Frame3
@@ -27,19 +25,6 @@ frame_1_button_module_attrs = {
 def frame_1_button_data(module):
     """button translation from Module to dict in Frame 1."""
     buttons = button_data_from_obj(module, frame_1_button_module_attrs)
-    return buttons
-
-
-def button_data_from_obj(obj, attrs):
-    buttons = {}
-    for k, v in attrs.items():
-        if isinstance(v, tuple):
-            if callable(v[1]):
-                buttons[k] = (rgetattr(obj, v[0]), v[1](obj))
-            else:
-                buttons[k] = (rgetattr(obj, v[0]), rgetattr(obj, v[1]))
-        else:
-            buttons[k] = rgetattr(obj, v)
     return buttons
 
 
@@ -77,8 +62,9 @@ frame_3_buttons = {
     "Register Length": "string",
     "Register Address": "string",
     "Register Reset": "string",
-    "Field": "separator",
-    "Field Name": "dropdown",
+    "Fields": "separator",
+    "Field Sel": "dropdown",
+    "Field Name": "string",
     "Field Type": "dropdown",
     "Field Length": "string",
     "Field Reset": "string",
@@ -97,6 +83,7 @@ frame_3_button_register_attrs = {
 
 
 frame_3_button_field_attrs = {
+    "Field Name": "name",
     "Field Type": ("sig_type", "supported_types"),
     "Field Length": "length",
     "Field Reset": "reset",
@@ -109,13 +96,20 @@ def frame_3_button_data(register, field=None):
     if field:
         field_reg = button_data_from_obj(field, frame_3_button_field_attrs)
         # field possible names is a register attribute. special exception
-        field_reg["Field Name"] = (field.name, [f.name for f in register.fields])
+        field_reg["Field Sel"] = (field.name, [f.name for f in register.fields])
 
         return dict(buttons_reg, **field_reg)
-    return buttons_reg
+    else:
+        field_reg = empty_data_from_attrs(frame_3_button_field_attrs)
+        # field possible names is a register attribute. special exception
+        field_reg["Field Sel"] = ("", [])
+
+        return dict(buttons_reg, **field_reg)
+
 
 def register_from_frame_3(register):
     pass
+
 
 def module_from_frame_3(module):
     pass
@@ -128,5 +122,26 @@ frame_buttons = {
     Frame3.__name__: frame_3_buttons,
 }
 
-
 all_buttons = list(chain(*[k.keys() for k in frame_buttons.values()]))
+
+
+def button_data_from_obj(obj, attrs):
+    buttons = {}
+    for k, v in attrs.items():
+        if isinstance(v, tuple):
+            if callable(v[1]):
+                buttons[k] = (rgetattr(obj, v[0]), v[1](obj))
+            else:
+                buttons[k] = (rgetattr(obj, v[0]), rgetattr(obj, v[1]))
+        else:
+            buttons[k] = rgetattr(obj, v)
+    return buttons
+
+def empty_data_from_attrs(attrs):
+    buttons = {}
+    for k,v in attrs.items():
+        if isinstance(v, tuple):
+            buttons[k] = ("", [])
+        else:
+            buttons[k] = ""
+    return buttons

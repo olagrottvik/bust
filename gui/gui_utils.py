@@ -35,3 +35,9 @@ def rgetattr(obj, attr, *args):
         return getattr(obj, attr, *args)
 
     return functools.reduce(_getattr, [obj] + attr.split("."))
+
+def first(kk):
+    return kk[0]
+
+def get_register_from_name(module, regname):
+    return first([reg for reg in module.registers if reg.name == regname])

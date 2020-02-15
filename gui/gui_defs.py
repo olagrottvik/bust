@@ -1,5 +1,4 @@
 import tkinter as tk
-from collections import namedtuple
 
 from gui.gui_utils import Singleton
 
@@ -17,3 +16,6 @@ class GuiComponent:
         raise NotImplementedError
 
 
+@Singleton
+class BustHolder:
+    pass

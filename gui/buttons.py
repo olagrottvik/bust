@@ -1,9 +1,11 @@
 import tkinter as tk
 from collections import defaultdict
+from functools import partial
 from tkinter import ttk as ttk
 
-from gui.gui_defs import GuiComponent
 from gui.buttons_decl import frame_buttons
+from gui.callbacks import frame_callbacks
+from gui.gui_defs import GuiComponent
 
 
 class GuiButtons(GuiComponent):
@@ -20,6 +22,13 @@ class GuiButtons(GuiComponent):
     def cfg(self):
         self.load_buttons()
         self.place_buttons()
+        self.register_callbacks()
+
+    def register_callbacks(self):
+        for framename, button_dict in self.buttons_dict.items():
+            if framename in frame_callbacks:
+                for button_name, fun in frame_callbacks[framename].items():
+                    self.buttons_dict[framename][button_name].bind(fun)
 
     def place_buttons(self):
         for framename, holder in self.buttonholders.items():
@@ -77,15 +86,23 @@ class SingleButton:
     box: ttk.Widget
     type: str
     row_offset = 0
+
     def place(self, row, col):
         self.label.grid(row=row + self.row_offset, column=col, sticky=tk.W + tk.E)
-        self.box.grid(row=row + self.row_offset, column=col + 1, pady=2, padx=2, sticky=tk.W + tk.E)
+        self.box.grid(
+            row=row + self.row_offset,
+            column=col + 1,
+            pady=2,
+            padx=2,
+            sticky=tk.W + tk.E,
+        )
 
     def getvalue(self):
         return None
 
     def setvalue(self, value, *args):
         pass
+
 
 class StringButton(SingleButton):
     type = "string"
@@ -97,7 +114,7 @@ class StringButton(SingleButton):
     def getvalue(self):
         return self.box.get()
 
-    def setvalue(self,value, *args):
+    def setvalue(self, value, *args):
         self.box.delete(0, tk.END)
         self.box.insert(0, str(value))
 
@@ -106,9 +123,9 @@ class DropDownButton(SingleButton):
     type = "dropdown"
 
     def __init__(self, parent, text):
-        self.box = ttk.Combobox(parent)
+        self.box = ttk.Combobox(parent, state="readonly")
         self.label = ttk.Label(parent, text=text)
-        self._opts = [] # must be a list to keep ordering.
+        self._opts = []  # must be a list to keep ordering.
 
     def getvalue(self):
         return self.box.get()
@@ -122,8 +139,15 @@ class DropDownButton(SingleButton):
                     self._opts.append(str(elem))
         except IndexError:
             pass
-        self.box['values'] = list(self._opts)
+        self.box["values"] = list(self._opts)
         self.box.set(value)
+
+    def bind(self, callback):
+        callback_f = partial(callback, self)
+        self.box.bind(
+            "<<ComboboxSelected>>", callback_f, add=True
+        )  # add instead of overwrite
+
 
 class SeparatorButton(SingleButton):
     type = "separator"
@@ -134,8 +158,16 @@ class SeparatorButton(SingleButton):
 
     def place(self, row, col):
         self.label.grid(row=row + self.row_offset, column=col, sticky=tk.W + tk.E)
-        self.box.grid(row=row+1 + self.row_offset, column=col, columnspan=2, pady=2, padx=2, sticky=tk.W + tk.E)
+        self.box.grid(
+            row=row + 1 + self.row_offset,
+            column=col,
+            columnspan=2,
+            pady=2,
+            padx=2,
+            sticky=tk.W + tk.E,
+        )
         SingleButton.row_offset += 1
+
 
 if __name__ == "__main__":
     pass
@@ -148,5 +180,3 @@ if __name__ == "__main__":
     # bg = GuiButtons(guiframes.buttonholders)
     # bg.cfg()
     # GuiGlobals().root.mainloop()
-
-
