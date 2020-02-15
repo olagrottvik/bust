@@ -19,3 +19,14 @@ class GuiComponent:
 @Singleton
 class BustHolder:
     pass
+
+
+class GuiInititializer:
+    """
+    Initialize the globals required to connect
+    with the bust objects.
+    """
+    def __init__(self, module, buttons):
+        bh = BustHolder()
+        bh.module = module
+        bh.bt = buttons
