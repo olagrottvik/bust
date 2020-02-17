@@ -103,21 +103,32 @@ class SingleButton:
     def setvalue(self, value, *args):
         pass
 
+    def _bind_box(self, action, callback):
+        self.box.bind(action, self._make_callback(callback), add=True)
+
+    def _make_callback(self, callback):
+        return partial(callback, self)
+
 
 class StringButton(SingleButton):
     type = "string"
 
     def __init__(self, parent, text):
-        self.box = ttk.Entry(parent)
+        self.sv = tk.StringVar()
+        self.box = ttk.Entry(parent, textvariable=self.sv)
         self.label = ttk.Label(parent, text=text)
 
     def getvalue(self):
-        return self.box.get()
+        return self.sv.get()
 
     def setvalue(self, value, *args):
-        self.box.delete(0, tk.END)
-        self.box.insert(0, str(value))
+        self.sv.set(value)
+        # self.box.delete(0, tk.END)
+        # self.box.insert(0, str(value))
 
+    def bind(self, callback):
+        self.sv.trace_add("write", self._make_callback(callback))
+        self._bind_box("<Return>", callback)
 
 class DropDownButton(SingleButton):
     type = "dropdown"
@@ -134,19 +145,14 @@ class DropDownButton(SingleButton):
         try:
             # duck typing for optlist
             optlist = args[0]
-            for elem in optlist:
-                if elem not in self._opts:
-                    self._opts.append(str(elem))
+            self._opts = optlist
         except IndexError:
             pass
-        self.box["values"] = list(self._opts)
+        self.box["values"] = self._opts
         self.box.set(value)
 
     def bind(self, callback):
-        callback_f = partial(callback, self)
-        self.box.bind(
-            "<<ComboboxSelected>>", callback_f, add=True
-        )  # add instead of overwrite
+        self._bind_box("<<ComboboxSelected>>", callback)
 
 
 class SeparatorButton(SingleButton):

@@ -23,9 +23,7 @@ if __name__ == "__main__":
     mh.bt = bt
     bt.cfg()
     bdata1 = frame_1_button_data(module)
-    bdata2 = frame_2_button_data(module)
-    bdata3 = frame_3_button_data(module.registers[7], module.registers[7].fields[0])
+    bdata3 = frame_3_button_data(module.registers[7], module.registers[7].fields[0], module)
     bt.set_buttons(bdata1, bt.buttons_dict["Frame1"])
-    bt.set_buttons(bdata2, bt.buttons_dict["Frame2"])
     bt.set_buttons(bdata3, bt.buttons_dict["Frame3"])
     GuiGlobals().root.mainloop()

@@ -62,7 +62,7 @@ class GuiFrames(GuiComponent):
             GuiGlobals().root, width=framewidth, height=frameheight
         )
 
-        self.frames = [Frame1(), Frame2(), Frame3()]
+        self.frames = [Frame1(), Frame3()]
         self.buttonholders = {
             type(frame).__name__: frame.buttonholder
             for frame in self.frames

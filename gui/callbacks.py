@@ -31,7 +31,7 @@ def field_select(button, event):
     val = button.getvalue()
     bt = BustHolder().bt
     module = BustHolder().module
-    regname = bt.buttons_dict[Frame2.__name__]["Register Select"].getvalue()
+    regname = bt.buttons_dict[Frame3.__name__]["Register Select"].getvalue()
     reg = get_register_from_name(module, regname)
     field_idx = _index_reg_field(reg, val)
     bdata3 = build_frame3(regname, field_idx)
@@ -41,9 +41,15 @@ def field_select(button, event):
 def _index_reg_field(reg, field_name):
     return first([cnt for cnt, r in enumerate(reg.fields) if r.name == field_name])
 
+def todo(*args):
+    print("callback not yet implemented", args)
 
-frame_2_callbacks = {"Register Select": register_select}
-frame_3_callbacks = {"Field Sel": field_select}
+frame_3_callbacks = \
+    {"Register Select": register_select,
+     "Register Name": todo,
+     "Description": todo,
+     "Register Mode": todo,
+     "Field Sel": field_select}
 
 
 def _update_frame3_buttons(bdata3):
@@ -52,6 +58,5 @@ def _update_frame3_buttons(bdata3):
 
 
 frame_callbacks = {
-    Frame2.__name__: frame_2_callbacks,
     Frame3.__name__: frame_3_callbacks,
 }

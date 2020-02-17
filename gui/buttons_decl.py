@@ -36,11 +36,6 @@ def module_from_frame_1(module, buttons):
         rsetattr(module, m_attr, newval)
 
 
-frame_2_buttons = {
-    "Register Select": "dropdown",
-}
-
-
 def frame_2_button_data(module):
     registers = None
     if module.registers:
@@ -55,6 +50,7 @@ def module_from_frame_2(module):
 
 
 frame_3_buttons = {
+    "Register Select": "dropdown",
     "Register Name": "string",
     "Description": "string",
     "Register Mode": "dropdown",
@@ -91,8 +87,16 @@ frame_3_button_field_attrs = {
 }
 
 
-def frame_3_button_data(register, field=None):
+def frame_3_button_data(register, field=None, module=None):
+
     buttons_reg = button_data_from_obj(register, frame_3_button_register_attrs)
+
+    if module:
+        if module.registers:
+            regnames = [reg.name for reg in module.registers]
+            registers = (register.name, regnames)
+            buttons_reg["Register Select"] = registers
+
     if field:
         field_reg = button_data_from_obj(field, frame_3_button_field_attrs)
         # field possible names is a register attribute. special exception
@@ -118,7 +122,6 @@ def module_from_frame_3(module):
 # explicitly using the Frame object names as keys
 frame_buttons = {
     Frame1.__name__: frame_1_buttons,
-    Frame2.__name__: frame_2_buttons,
     Frame3.__name__: frame_3_buttons,
 }
 
@@ -137,9 +140,10 @@ def button_data_from_obj(obj, attrs):
             buttons[k] = rgetattr(obj, v)
     return buttons
 
+
 def empty_data_from_attrs(attrs):
     buttons = {}
-    for k,v in attrs.items():
+    for k, v in attrs.items():
         if isinstance(v, tuple):
             buttons[k] = ("", [])
         else:
