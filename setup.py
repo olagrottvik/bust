@@ -36,7 +36,7 @@ setup(
         "prettytable>=2.5.0",
     ],
     extras_require={
-        "dev": ["pytest", "pylint"],
+        "dev": ["pytest", "pylint", "vsg"],
     },
     python_requires=">=3.9.0",  # For Python 3.9.0 and up
     description=description,
