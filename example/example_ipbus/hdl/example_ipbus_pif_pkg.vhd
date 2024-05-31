@@ -2,7 +2,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 package example_ipbus_pif_pkg is
 
   constant C_EXAMPLE_IPBUS_ADDR_WIDTH : natural := 32;

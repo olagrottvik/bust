@@ -1,5 +1,5 @@
 from bust.utils import indent_string
-from bust.vhdl import lib_declaration
+from bust.vhdl import std_lib_declaration
 
 
 class ModuleVHDLGen:
@@ -15,7 +15,7 @@ class ModuleVHDLGen:
         self.n_pulse_regs = len([reg for reg in self.registers if reg.mode == "pulse"])
 
     def return_module_pkg_VHDL(self):
-        s = lib_declaration()
+        s = std_lib_declaration()
         s += "\n"
         s += "package " + self.name + "_pif_pkg is"
         s += "\n\n"
@@ -247,7 +247,8 @@ class ModuleVHDLGen:
         return indent_string(par)
 
     def return_module_VHDL(self):
-        s = lib_declaration()
+        s = std_lib_declaration()
+        s += "\n"
         s += "-- User Libraries Start\n\n"
         s += "-- User Libraries End\n"
         s += "\n"

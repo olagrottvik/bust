@@ -1,5 +1,15 @@
 from bust.utils import indent_string
-from bust.vhdl import async_process, sync_process, comb_process, comb_process_with_reset
+from bust.vhdl import (
+    async_process,
+    library_clause,
+    sync_process,
+    comb_process,
+    comb_process_with_reset,
+    std_lib_declaration,
+    use_clause,
+    library_clause,
+    use_clause,
+)
 
 
 class BusVHDLGen:
@@ -45,8 +55,7 @@ class BusVHDLGen:
     def return_bus_pkg_VHDL(self):
         if self.bus_type == "axi":
 
-            s = "library ieee;\n"
-            s += "use ieee.std_logic_1164.all;\n"
+            s = std_lib_declaration(numeric_std=False)
             s += "\n"
 
             s += "package " + self.bus_type + "_pkg is\n"
@@ -109,17 +118,18 @@ class BusVHDLGen:
         clk_name = self.clk_name
         reset_name = self.reset_name
 
-        s = "library ieee;\n"
-        s += "use ieee.std_logic_1164.all;\n"
-        s += "use ieee.numeric_std.all;\n"
+        s = std_lib_declaration()
         s += "\n"
         if self.comp_library != "work":
-            s += "library " + self.comp_library + ";\n"
+            s += f"{library_clause(self.comp_library)}\n"
         if self.bus_type == "ipbus":
-            s += "use " + self.comp_library + "." + self.bus_type + ".all;\n"
+            s += f"{use_clause(self.comp_library, self.bus_type)}\n"
         else:
-            s += "use " + self.comp_library + "." + self.bus_type + "_pkg.all;\n"
-        s += "use work." + mod.name + "_pif_pkg.all;\n\n"
+            s += f"{use_clause(self.comp_library, f'{self.bus_type}_pkg')}\n"
+
+        s += f"{use_clause('work', f'{mod.name}_pif_pkg')}\n"
+
+        s += "\n"
 
         s += "entity " + mod.name + "_" + self.short_name + "_pif is\n\n"
         s += indent_string("generic (\n")
