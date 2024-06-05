@@ -7,8 +7,6 @@ from bust.vhdl import (
     comb_process_with_reset,
     std_lib_declaration,
     use_clause,
-    library_clause,
-    use_clause,
 )
 
 

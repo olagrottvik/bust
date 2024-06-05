@@ -12,7 +12,7 @@ def library_clause(library_identifier):
 
 def use_clause(library, selected_name):
     """Return use clause"""
-    return f"use {library}.{selected_name}.all;"
+    return indent_string(f"use {library}.{selected_name}.all;")
 
 
 def std_lib_declaration(numeric_std=True):
