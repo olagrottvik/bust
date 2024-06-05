@@ -127,17 +127,18 @@ class BusVHDLGen:
 
         s += "\n"
 
-        s += "entity " + mod.name + "_" + self.short_name + "_pif is\n\n"
+        s += "entity " + mod.name + "_" + self.short_name + "_pif is\n"
         s += indent_string("generic (\n")
         par = "-- " + self.bus_type.upper() + " Bus Interface Generics\n"
         par += (
             "g_"
             + self.short_name
-            + "_baseaddr        : std_logic_vector("
+            + "_baseaddr : std_logic_vector("
             + str(self.addr_width - 1)
         )
-        par += " downto 0) := (others => '0'));\n"
+        par += " downto 0) := (others => '0')\n"
         s += indent_string(par, 2)
+        s += indent_string(");\n")
 
         s += indent_string("port (")
 
@@ -147,54 +148,63 @@ class BusVHDLGen:
 
         if mod.count_rw_regs() > 0:
             par += (
-                self.short_name + "_rw_regs    : out t_" + mod.name + "_rw_regs    := "
+                self.short_name
+                + "_rw_regs    : out   t_"
+                + mod.name
+                + "_rw_regs    := "
             )
             par += "c_" + mod.name + "_rw_regs;\n"
 
         if mod.count_ro_regs() > 0:
             par += (
-                self.short_name + "_ro_regs    : in  t_" + mod.name + "_ro_regs    := "
+                self.short_name
+                + "_ro_regs    : in    t_"
+                + mod.name
+                + "_ro_regs    := "
             )
             par += "c_" + mod.name + "_ro_regs;\n"
 
         if mod.count_pulse_regs() > 0:
             par += (
-                self.short_name + "_pulse_regs : out t_" + mod.name + "_pulse_regs := "
+                self.short_name
+                + "_pulse_regs : out   t_"
+                + mod.name
+                + "_pulse_regs := "
             )
             par += "c_" + mod.name + "_pulse_regs;\n"
 
         par += "\n"
         par += "-- bus signals\n"
-        par += clk_name + "            : in  std_logic;\n"
-        par += reset_name + "       : in  std_logic;\n"
+        par += clk_name + "      : in    std_logic;\n"
+        par += reset_name + " : in    std_logic;\n"
 
         # Add bus-specific signals
         if self.bus_type == "axi":
 
-            par += "awaddr         : in  t_" + mod.name + "_addr;\n"
-            par += "awvalid        : in  std_logic;\n"
-            par += "awready        : out std_logic;\n"
-            par += "wdata          : in  t_" + mod.name + "_data;\n"
-            par += "wvalid         : in  std_logic;\n"
-            par += "wready         : out std_logic;\n"
-            par += "bresp          : out std_logic_vector(1 downto 0);\n"
-            par += "bvalid         : out std_logic;\n"
-            par += "bready         : in  std_logic;\n"
-            par += "araddr         : in  t_" + mod.name + "_addr;\n"
-            par += "arvalid        : in  std_logic;\n"
-            par += "arready        : out std_logic;\n"
-            par += "rdata          : out t_" + mod.name + "_data;\n"
-            par += "rresp          : out std_logic_vector(1 downto 0);\n"
-            par += "rvalid         : out std_logic;\n"
-            par += "rready         : in  std_logic\n"
+            par += "awaddr   : in    t_" + mod.name + "_addr;\n"
+            par += "awvalid  : in    std_logic;\n"
+            par += "awready  : out   std_logic;\n"
+            par += "wdata    : in    t_" + mod.name + "_data;\n"
+            par += "wvalid   : in    std_logic;\n"
+            par += "wready   : out   std_logic;\n"
+            par += "bresp    : out   std_logic_vector(1 downto 0);\n"
+            par += "bvalid   : out   std_logic;\n"
+            par += "bready   : in    std_logic;\n"
+            par += "araddr   : in    t_" + mod.name + "_addr;\n"
+            par += "arvalid  : in    std_logic;\n"
+            par += "arready  : out   std_logic;\n"
+            par += "rdata    : out   t_" + mod.name + "_data;\n"
+            par += "rresp    : out   std_logic_vector(1 downto 0);\n"
+            par += "rvalid   : out   std_logic;\n"
+            par += "rready   : in    std_logic\n"
 
         elif self.bus_type == "ipbus":
             par += "{}_in         : in  {};\n".format(self.short_name, self.in_type)
             par += "{}_out        : out {}\n".format(self.short_name, self.out_type)
 
-        par += ");\n"
         s += indent_string(par, 2)
-        s += "end " + mod.name + "_" + self.short_name + "_pif;\n\n"
+        s += indent_string(");\n")
+        s += "end entity " + mod.name + "_" + self.short_name + "_pif;\n\n"
 
         s += "architecture behavior of {}_{}_pif is\n\n".format(
             mod.name, self.short_name

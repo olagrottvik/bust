@@ -1,43 +1,43 @@
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 library bust;
-use bust.axi_pkg.all;
-use work.example_axi_pif_pkg.all;
+  use bust.axi_pkg.all;
+  use work.example_axi_pif_pkg.all;
 
 entity example_axi_axi_pif is
-
   generic (
     -- AXI Bus Interface Generics
-    g_axi_baseaddr        : std_logic_vector(31 downto 0) := (others => '0'));
+    g_axi_baseaddr : std_logic_vector(31 downto 0) := (others => '0')
+  );
   port (
     -- AXI Bus Interface Ports
-    axi_rw_regs    : out t_example_axi_rw_regs    := c_example_axi_rw_regs;
-    axi_ro_regs    : in  t_example_axi_ro_regs    := c_example_axi_ro_regs;
-    axi_pulse_regs : out t_example_axi_pulse_regs := c_example_axi_pulse_regs;
+    axi_rw_regs    : out   t_example_axi_rw_regs    := c_example_axi_rw_regs;
+    axi_ro_regs    : in    t_example_axi_ro_regs    := c_example_axi_ro_regs;
+    axi_pulse_regs : out   t_example_axi_pulse_regs := c_example_axi_pulse_regs;
 
     -- bus signals
-    clk            : in  std_logic;
-    areset_n       : in  std_logic;
-    awaddr         : in  t_example_axi_addr;
-    awvalid        : in  std_logic;
-    awready        : out std_logic;
-    wdata          : in  t_example_axi_data;
-    wvalid         : in  std_logic;
-    wready         : out std_logic;
-    bresp          : out std_logic_vector(1 downto 0);
-    bvalid         : out std_logic;
-    bready         : in  std_logic;
-    araddr         : in  t_example_axi_addr;
-    arvalid        : in  std_logic;
-    arready        : out std_logic;
-    rdata          : out t_example_axi_data;
-    rresp          : out std_logic_vector(1 downto 0);
-    rvalid         : out std_logic;
-    rready         : in  std_logic
-    );
-end example_axi_axi_pif;
+    clk      : in    std_logic;
+    areset_n : in    std_logic;
+    awaddr   : in    t_example_axi_addr;
+    awvalid  : in    std_logic;
+    awready  : out   std_logic;
+    wdata    : in    t_example_axi_data;
+    wvalid   : in    std_logic;
+    wready   : out   std_logic;
+    bresp    : out   std_logic_vector(1 downto 0);
+    bvalid   : out   std_logic;
+    bready   : in    std_logic;
+    araddr   : in    t_example_axi_addr;
+    arvalid  : in    std_logic;
+    arready  : out   std_logic;
+    rdata    : out   t_example_axi_data;
+    rresp    : out   std_logic_vector(1 downto 0);
+    rvalid   : out   std_logic;
+    rready   : in    std_logic
+  );
+end entity example_axi_axi_pif;
 
 architecture behavior of example_axi_axi_pif is
 
