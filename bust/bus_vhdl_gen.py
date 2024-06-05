@@ -77,8 +77,7 @@ class BusVHDLGen:
             par += "\n"
             s += indent_string(par)
 
-            s += indent_string("type t_" + self.bus_type)
-            s += "_mosi is record\n"
+            s += indent_string(f"type t_{self.bus_type}_mosi is record\n")
             par = ""
             par += "araddr  : " + addr_sub_type + ";\n"
             par += "arvalid : std_logic;\n"
@@ -89,11 +88,10 @@ class BusVHDLGen:
             par += "wdata   : " + data_sub_type + ";\n"
             par += "wvalid  : std_logic;\n"
             s += indent_string(par, 2)
-            s += indent_string("end record;\n")
+            s += indent_string(f"end record t_{self.bus_type}_mosi;\n")
             s += "\n"
 
-            s += indent_string("type t_" + self.bus_type)
-            s += "_miso is record\n"
+            s += indent_string(f"type t_{self.bus_type}_miso is record\n")
             par = ""
             par += "arready : std_logic;\n"
             par += "awready : std_logic;\n"
@@ -104,7 +102,7 @@ class BusVHDLGen:
             par += "rvalid  : std_logic;\n"
             par += "wready  : std_logic;\n"
             s += indent_string(par, 2)
-            s += indent_string("end record;\n")
+            s += indent_string(f"end record t_{self.bus_type}_miso;\n")
             s += "\n"
 
             s += "end " + self.bus_type + "_pkg;"

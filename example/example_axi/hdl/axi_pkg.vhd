@@ -18,7 +18,7 @@ package axi_pkg is
     rready  : std_logic;
     wdata   : t_axi_data;
     wvalid  : std_logic;
-  end record;
+  end record t_axi_mosi;
 
   type t_axi_miso is record
     arready : std_logic;
@@ -29,6 +29,6 @@ package axi_pkg is
     rresp   : std_logic_vector(1 downto 0);
     rvalid  : std_logic;
     wready  : std_logic;
-  end record;
+  end record t_axi_miso;
 
 end axi_pkg;
