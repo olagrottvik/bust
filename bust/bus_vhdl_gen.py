@@ -57,7 +57,7 @@ class BusVHDLGen:
             s += "\n"
 
             s += "package " + self.bus_type + "_pkg is\n"
-            s += "\n\n"
+            s += "\n"
 
             data_width_constant = "c_" + self.bus_type + "_data_width"
             addr_width_constant = "c_" + self.bus_type + "_addr_width"
@@ -71,9 +71,9 @@ class BusVHDLGen:
             par += " : natural := " + str(self.addr_width) + ";\n"
             par += "\n"
             par += "subtype " + data_sub_type + " is std_logic_vector("
-            par += data_width_constant + "-1 downto 0);\n"
+            par += data_width_constant + " - 1 downto 0);\n"
             par += "subtype " + addr_sub_type + " is std_logic_vector("
-            par += addr_width_constant + "-1 downto 0);\n"
+            par += addr_width_constant + " - 1 downto 0);\n"
             par += "\n"
             s += indent_string(par)
 
