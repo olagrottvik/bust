@@ -34,27 +34,24 @@ def sync_process(
 ):
     s = process_name + " : process (" + clk_name + ") is\n"
     if variables is not None:
+        s += "\n"
         for var in variables:
             s += indent_string("variable " + var + ";\n")
-    s += "begin\n"
-    s += indent_string("if rising_edge(" + clk_name + ") then\n")
-    s += indent_string("if " + reset_name + " = ", 2)
+        s += "\n"
+    s += "begin\n\n"
 
     if active_low:
-        s += "'0'"
+        polarity = 0
     else:
-        s += "'1'"
+        polarity = 1
+    if_condition = f"{reset_name} = '{polarity}'"
 
-    s += " then\n"
+    if_str = if_else_statement(if_condition, reset_string, logic_string)
 
-    s += indent_string(reset_string, 3)
+    s += indent_string(if_statement(f"rising_edge({clk_name})", if_str))
     s += "\n"
-    s += indent_string("else\n", 2)
 
-    s += indent_string(logic_string, 3)
-    s += indent_string("end if;\n", 2)
-    s += indent_string("end if;\n")
-    s += "end process " + process_name + ";\n"
+    s += "\nend process " + process_name + ";\n"
     return s
 
 

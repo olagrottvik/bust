@@ -176,10 +176,13 @@ begin
   end process p_mm_select_write;
 
   p_pulse_reg9 : process (clk) is
+
     variable cnt : natural range 0 to 3 := 0;
+
   begin
-    if rising_edge(clk) then
-      if areset_n = '0' then
+
+    if (rising_edge(clk)) then
+      if (areset_n = '0') then
         axi_pulse_regs_i.reg9 <= c_example_axi_pulse_regs.reg9;
       else
         if axi_pulse_regs_cycle.reg9 /= c_example_axi_pulse_regs.reg9 then
@@ -194,12 +197,16 @@ begin
         end if;
       end if;
     end if;
+
   end process p_pulse_reg9;
 
   p_pulse_reg10 : process (clk) is
+
+
   begin
-    if rising_edge(clk) then
-      if areset_n = '0' then
+
+    if (rising_edge(clk)) then
+      if (areset_n = '0') then
         axi_pulse_regs_i.reg10 <= c_example_axi_pulse_regs.reg10;
       else
         if axi_pulse_regs_cycle.reg10 /= c_example_axi_pulse_regs.reg10 then
@@ -209,13 +216,17 @@ begin
         end if;
       end if;
     end if;
+
   end process p_pulse_reg10;
 
   p_pulse_reg11 : process (clk) is
+
     variable cnt : natural range 0 to 49 := 0;
+
   begin
-    if rising_edge(clk) then
-      if areset_n = '0' then
+
+    if (rising_edge(clk)) then
+      if (areset_n = '0') then
         axi_pulse_regs_i.reg11 <= c_example_axi_pulse_regs.reg11;
       else
         if axi_pulse_regs_cycle.reg11 /= c_example_axi_pulse_regs.reg11 then
@@ -230,6 +241,7 @@ begin
         end if;
       end if;
     end if;
+
   end process p_pulse_reg11;
 
   p_write_response : process (clk, areset_n) is
