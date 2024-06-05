@@ -41,33 +41,32 @@ end entity example_axi_axi_pif;
 
 architecture behavior of example_axi_axi_pif is
 
-  constant C_BASEADDR : t_axi_addr := g_axi_baseaddr;
+  constant c_baseaddr : t_axi_addr := g_axi_baseaddr;
 
   -- internal signal for readback
-  signal axi_rw_regs_i    : t_example_axi_rw_regs := c_example_axi_rw_regs;
-  signal axi_pulse_regs_i : t_example_axi_pulse_regs := c_example_axi_pulse_regs;
+  signal axi_rw_regs_i        : t_example_axi_rw_regs    := c_example_axi_rw_regs;
+  signal axi_pulse_regs_i     : t_example_axi_pulse_regs := c_example_axi_pulse_regs;
   signal axi_pulse_regs_cycle : t_example_axi_pulse_regs := c_example_axi_pulse_regs;
 
   -- internal bus signals for readback
-  signal awaddr_i      : t_example_axi_addr;
-  signal awready_i     : std_logic;
-  signal wready_i      : std_logic;
-  signal bresp_i       : std_logic_vector(1 downto 0);
-  signal bvalid_i      : std_logic;
-  signal araddr_i      : t_example_axi_addr;
-  signal arready_i     : std_logic;
-  signal rdata_i       : t_example_axi_data;
-  signal rresp_i       : std_logic_vector(1 downto 0);
-  signal rvalid_i      : std_logic;
+  signal awaddr_i  : t_example_axi_addr;
+  signal awready_i : std_logic;
+  signal wready_i  : std_logic;
+  signal bresp_i   : std_logic_vector(1 downto 0);
+  signal bvalid_i  : std_logic;
+  signal araddr_i  : t_example_axi_addr;
+  signal arready_i : std_logic;
+  signal rdata_i   : t_example_axi_data;
+  signal rresp_i   : std_logic_vector(1 downto 0);
+  signal rvalid_i  : std_logic;
 
   signal slv_reg_rden : std_logic;
   signal slv_reg_wren : std_logic;
   signal reg_data_out : t_example_axi_data;
-  -- signal byte_index   : integer; -- unused
 
 begin
 
-  axi_rw_regs <= axi_rw_regs_i;
+  axi_rw_regs    <= axi_rw_regs_i;
   axi_pulse_regs <= axi_pulse_regs_i;
 
   awready <= awready_i;
@@ -79,11 +78,11 @@ begin
   rresp   <= rresp_i;
   rvalid  <= rvalid_i;
 
-  p_awready : process(clk, areset_n)
+  p_awready : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       awready_i <= '0';
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (awready_i = '0' and awvalid = '1'  and wvalid = '1') then
         awready_i <= '1';
       else
@@ -92,22 +91,22 @@ begin
     end if;
   end process p_awready;
 
-  p_awaddr : process(clk, areset_n)
+  p_awaddr : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       awaddr_i <= (others => '0');
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (awready_i = '0' and awvalid = '1' and wvalid = '1') then
         awaddr_i <= awaddr;
       end if;
     end if;
   end process p_awaddr;
 
-  p_wready : process(clk, areset_n)
+  p_wready : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       wready_i <= '0';
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (wready_i = '0' and awvalid = '1' and wvalid = '1') then
         wready_i <= '1';
       else
@@ -118,14 +117,14 @@ begin
 
   slv_reg_wren <= wready_i and wvalid and awready_i and awvalid;
 
-  p_mm_select_write : process(clk, areset_n)
+  p_mm_select_write : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
 
       axi_rw_regs_i <= c_example_axi_rw_regs;
       axi_pulse_regs_cycle <= c_example_axi_pulse_regs;
 
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
 
       -- Return PULSE registers to reset value every clock cycle
       axi_pulse_regs_cycle <= c_example_axi_pulse_regs;
@@ -190,7 +189,7 @@ begin
     end if;
   end process p_mm_select_write;
 
-  p_pulse_reg9 : process(clk)
+  p_pulse_reg9 : process (clk) is
     variable cnt : natural range 0 to 3 := 0;
   begin
     if rising_edge(clk) then
@@ -211,7 +210,7 @@ begin
     end if;
   end process p_pulse_reg9;
 
-  p_pulse_reg10 : process(clk)
+  p_pulse_reg10 : process (clk) is
   begin
     if rising_edge(clk) then
       if areset_n = '0' then
@@ -226,7 +225,7 @@ begin
     end if;
   end process p_pulse_reg10;
 
-  p_pulse_reg11 : process(clk)
+  p_pulse_reg11 : process (clk) is
     variable cnt : natural range 0 to 49 := 0;
   begin
     if rising_edge(clk) then
@@ -247,12 +246,12 @@ begin
     end if;
   end process p_pulse_reg11;
 
-  p_write_response : process(clk, areset_n)
+  p_write_response : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       bvalid_i <= '0';
       bresp_i  <= "00";
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (awready_i = '1' and awvalid = '1' and wready_i = '1' and wvalid = '1' and bvalid_i = '0') then
         bvalid_i <= '1';
         bresp_i  <= "00";
@@ -262,12 +261,12 @@ begin
     end if;
   end process p_write_response;
 
-  p_arready : process(clk, areset_n)
+  p_arready : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       arready_i <= '0';
       araddr_i  <= (others => '0');
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (arready_i = '0' and arvalid = '1') then
         arready_i <= '1';
         araddr_i  <= araddr;
@@ -277,12 +276,12 @@ begin
     end if;
   end process p_arready;
 
-  p_arvalid : process(clk, areset_n)
+  p_arvalid : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       rvalid_i <= '0';
       rresp_i  <= "00";
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (arready_i = '1' and arvalid = '1' and rvalid_i = '0') then
         rvalid_i <= '1';
         rresp_i  <= "00";
@@ -361,11 +360,11 @@ begin
 
   end process p_mm_select_read;
 
-  p_output : process(clk, areset_n)
+  p_output : process (clk, areset_n) is
   begin
-    if areset_n = '0' then
+    if (areset_n = '0') then
       rdata_i <= (others => '0');
-    elsif rising_edge(clk) then
+    elsif (rising_edge(clk)) then
       if (slv_reg_rden = '1') then
         rdata_i <= reg_data_out;
       end if;

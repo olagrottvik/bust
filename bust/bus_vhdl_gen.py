@@ -211,19 +211,9 @@ class BusVHDLGen:
         )
 
         if self.bus_type == "ipbus":
-            par = (
-                "constant C_BASEADDR : std_logic_vector(31 downto 0) := g_"
-                + self.short_name
-                + "_baseaddr;\n"
-            )
+            par = f"constant c_baseaddr : std_logic_vector(31 downto 0) := g_{self.short_name}_baseaddr;\n"
         else:
-            par = (
-                "constant C_BASEADDR : t_"
-                + self.short_name
-                + "_addr := g_"
-                + self.short_name
-                + "_baseaddr;\n"
-            )
+            par = f"constant c_baseaddr : t_{self.short_name}_addr := g_{self.short_name}_baseaddr;\n"
         s += indent_string(par)
 
         s += "\n"
@@ -233,15 +223,12 @@ class BusVHDLGen:
             par += "-- internal signal for readback" + "\n"
             s += indent_string(par)
             if mod.count_rw_regs() > 0:
-                par = "signal " + self.short_name + "_rw_regs_i    : t_"
-                par += mod.name + "_rw_regs := c_" + mod.name + "_rw_regs;\n"
+                par = f"signal {self.short_name}_rw_regs_i        : t_{mod.name}_rw_regs    := c_{mod.name}_rw_regs;\n"
                 s += indent_string(par)
             if mod.count_pulse_regs() > 0:
-                par = "signal " + self.short_name + "_pulse_regs_i : t_"
-                par += mod.name + "_pulse_regs := c_" + mod.name + "_pulse_regs;\n"
+                par = f"signal {self.short_name}_pulse_regs_i     : t_{mod.name}_pulse_regs := c_{mod.name}_pulse_regs;\n"
                 s += indent_string(par)
-                par = "signal " + self.short_name + "_pulse_regs_cycle : t_"
-                par += mod.name + "_pulse_regs := c_" + mod.name + "_pulse_regs;\n"
+                par = f"signal {self.short_name}_pulse_regs_cycle : t_{mod.name}_pulse_regs := c_{mod.name}_pulse_regs;\n"
                 s += indent_string(par)
 
         s += "\n"
@@ -257,27 +244,26 @@ class BusVHDLGen:
     def return_axi_pif_VHDL(self, mod, clk_name, reset_name):
         s = ""
         par = "-- internal bus signals for readback\n"
-        par += "signal awaddr_i      : t_" + mod.name + "_addr;\n"
-        par += "signal awready_i     : std_logic;\n"
-        par += "signal wready_i      : std_logic;\n"
-        par += "signal bresp_i       : std_logic_vector(1 downto 0);\n"
-        par += "signal bvalid_i      : std_logic;\n"
-        par += "signal araddr_i      : t_" + mod.name + "_addr;\n"
-        par += "signal arready_i     : std_logic;\n"
-        par += "signal rdata_i       : t_" + mod.name + "_data;\n"
-        par += "signal rresp_i       : std_logic_vector(1 downto 0);\n"
-        par += "signal rvalid_i      : std_logic;\n\n"
+        par += "signal awaddr_i  : t_" + mod.name + "_addr;\n"
+        par += "signal awready_i : std_logic;\n"
+        par += "signal wready_i  : std_logic;\n"
+        par += "signal bresp_i   : std_logic_vector(1 downto 0);\n"
+        par += "signal bvalid_i  : std_logic;\n"
+        par += "signal araddr_i  : t_" + mod.name + "_addr;\n"
+        par += "signal arready_i : std_logic;\n"
+        par += "signal rdata_i   : t_" + mod.name + "_data;\n"
+        par += "signal rresp_i   : std_logic_vector(1 downto 0);\n"
+        par += "signal rvalid_i  : std_logic;\n\n"
 
         par += "signal slv_reg_rden : std_logic;\n"
         par += "signal slv_reg_wren : std_logic;\n"
-        par += "signal reg_data_out : t_" + mod.name + "_data;\n"
-        par += "-- signal byte_index   : integer" + "; -- unused\n\n"
+        par += "signal reg_data_out : t_" + mod.name + "_data;\n\n"
         s += indent_string(par)
 
         s += "begin\n\n"
 
         if mod.count_rw_regs() > 0:
-            s += indent_string("axi_rw_regs <= axi_rw_regs_i") + ";\n"
+            s += indent_string("axi_rw_regs    <= axi_rw_regs_i") + ";\n"
         if mod.count_pulse_regs() > 0:
             s += indent_string("axi_pulse_regs <= axi_pulse_regs_i") + ";\n"
         if mod.count_rw_regs() + mod.count_pulse_regs() > 0:

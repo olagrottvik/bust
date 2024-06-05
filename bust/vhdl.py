@@ -32,7 +32,7 @@ def sync_process(
     active_low=True,
     variables=None,
 ):
-    s = process_name + " : process(" + clk_name + ")\n"
+    s = process_name + " : process (" + clk_name + ") is\n"
     if variables is not None:
         for var in variables:
             s += indent_string("variable " + var + ";\n")
@@ -67,27 +67,23 @@ def async_process(
     active_low=True,
     variables=None,
 ):
-    s = process_name + " : process(" + clk_name + ", " + reset_name + ")\n"
+    s = process_name + " : process (" + clk_name + ", " + reset_name + ") is\n"
     if variables is not None:
         for var in variables:
             s += indent_string("variable " + var + ";\n")
     s += "begin\n"
-    s += indent_string("if " + reset_name + " = ")
 
     if active_low:
-        s += "'0'"
+        polarity = 0
     else:
-        s += "'1'"
+        polarity = 1
+    if_condition = f"{reset_name} = '{polarity}'"
 
-    s += " then\n"
+    if_str = if_else_if_statement(
+        if_condition, reset_string, f"rising_edge({clk_name})", logic_string
+    )
 
-    s += indent_string(reset_string, 2)
-    s += "\n"
-    s += indent_string("elsif rising_edge(" + clk_name + ") then\n")
-
-    s += indent_string(logic_string, 2)
-    s += "\n"
-    s += indent_string("end if;\n")
+    s += indent_string(if_str)
     s += "end process " + process_name + ";\n"
 
     return s
@@ -127,6 +123,40 @@ def comb_process_with_reset(
 
     s += "end process " + process_name + ";\n"
 
+    return s
+
+
+def if_statement(condition, then_string):
+    s = f"if ({condition}) then\n"
+    s += indent_string(then_string)
+    return s
+
+
+def if_else_statement(condition, then_string, else_string=None):
+    s = if_statement(condition, then_string)
+    if else_string is not None:
+        s += "\nelse\n"
+        s += indent_string(else_string)
+    s += "end if;\n"
+    return s
+
+
+def if_else_if_statement(condition, then_string, else_if_condition, else_if_string):
+    s = f"if ({condition}) then\n"
+    s += indent_string(then_string)
+    s += f"\nels{if_statement(else_if_condition, else_if_string)}\n"
+    s += "end if;\n"
+    return s
+
+
+def if_else_if_else_statement(
+    condition, then_string, else_if_condition, else_if_string, else_string=None
+):
+    if_else_if_statement(condition, then_string, else_if_condition, else_if_string)
+    if else_string is not None:
+        s += "\nelse\n"
+        s += indent_string(else_string)
+    s += "end if;\n"
     return s
 
 
