@@ -105,7 +105,7 @@ class BusVHDLGen:
             s += indent_string(f"end record t_{self.bus_type}_miso;\n")
             s += "\n"
 
-            s += "end " + self.bus_type + "_pkg;"
+            s += "end package " + self.bus_type + "_pkg;"
             s += "\n"
 
         return s

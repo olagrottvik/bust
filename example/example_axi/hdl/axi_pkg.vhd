@@ -31,4 +31,4 @@ package axi_pkg is
     wready  : std_logic;
   end record t_axi_miso;
 
-end axi_pkg;
+end package axi_pkg;
