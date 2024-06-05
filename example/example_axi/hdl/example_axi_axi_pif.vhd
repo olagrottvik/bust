@@ -80,6 +80,7 @@ begin
 
   p_awready : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       awready_i <= '0';
     elsif (rising_edge(clk)) then
@@ -89,10 +90,12 @@ begin
         awready_i <= '0';
       end if;
     end if;
+
   end process p_awready;
 
   p_awaddr : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       awaddr_i <= (others => '0');
     elsif (rising_edge(clk)) then
@@ -100,10 +103,12 @@ begin
         awaddr_i <= awaddr;
       end if;
     end if;
+
   end process p_awaddr;
 
   p_wready : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       wready_i <= '0';
     elsif (rising_edge(clk)) then
@@ -113,12 +118,14 @@ begin
         wready_i <= '0';
       end if;
     end if;
+
   end process p_wready;
 
   slv_reg_wren <= wready_i and wvalid and awready_i and awvalid;
 
   p_mm_select_write : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
 
       axi_rw_regs_i <= c_example_axi_rw_regs;
@@ -132,61 +139,46 @@ begin
 
       if (slv_reg_wren = '1') then
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG0), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg0), 32)) then
             axi_rw_regs_i.reg0 <= wdata(0);
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG1), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg1), 32)) then
             axi_rw_regs_i.reg1 <= wdata(0);
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG3), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg3), 32)) then
             axi_rw_regs_i.reg3 <= wdata(7 downto 0);
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG5), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg5), 32)) then
             axi_rw_regs_i.reg5 <= wdata;
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG7), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg7), 32)) then
             axi_rw_regs_i.reg7.field0 <= wdata(0);
             axi_rw_regs_i.reg7.field1 <= wdata(4 downto 1);
             axi_rw_regs_i.reg7.field2 <= wdata(5);
             axi_rw_regs_i.reg7.field3 <= wdata(20 downto 6);
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG9), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg9), 32)) then
             axi_pulse_regs_cycle.reg9 <= wdata(0);
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG10), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg10), 32)) then
             axi_pulse_regs_cycle.reg10 <= wdata(3 downto 0);
-
           end if;
 
-          if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG11), 32) then
-
+          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg11), 32)) then
             axi_pulse_regs_cycle.reg11.field0 <= wdata(14 downto 0);
             axi_pulse_regs_cycle.reg11.field1 <= wdata(15);
-
           end if;
 
       end if;
 
     end if;
+
   end process p_mm_select_write;
 
   p_pulse_reg9 : process (clk) is
@@ -248,6 +240,7 @@ begin
 
   p_write_response : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       bvalid_i <= '0';
       bresp_i  <= "00";
@@ -259,10 +252,12 @@ begin
         bvalid_i <= '0';
       end if;
     end if;
+
   end process p_write_response;
 
   p_arready : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       arready_i <= '0';
       araddr_i  <= (others => '0');
@@ -274,10 +269,12 @@ begin
         arready_i <= '0';
       end if;
     end if;
+
   end process p_arready;
 
   p_arvalid : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       rvalid_i <= '0';
       rresp_i  <= "00";
@@ -289,6 +286,7 @@ begin
         rvalid_i <= '0';
       end if;
     end if;
+
   end process p_arvalid;
 
   slv_reg_rden <= arready_i and arvalid and (not rvalid_i);
@@ -298,49 +296,49 @@ begin
 
     reg_data_out <= (others => '0');
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG0), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG0), 32) then
 
       reg_data_out(0) <= axi_rw_regs_i.reg0;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG1), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG1), 32) then
 
       reg_data_out(0) <= axi_rw_regs_i.reg1;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG2), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG2), 32) then
 
       reg_data_out(0) <= axi_ro_regs.reg2;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG3), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG3), 32) then
 
       reg_data_out(7 downto 0) <= axi_rw_regs_i.reg3;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG4), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG4), 32) then
 
       reg_data_out(13 downto 0) <= axi_ro_regs.reg4;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG5), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG5), 32) then
 
       reg_data_out <= axi_rw_regs_i.reg5;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG6), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG6), 32) then
 
       reg_data_out <= axi_ro_regs.reg6;
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG7), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG7), 32) then
 
       reg_data_out(0) <= axi_rw_regs_i.reg7.field0;
       reg_data_out(4 downto 1) <= axi_rw_regs_i.reg7.field1;
@@ -349,7 +347,7 @@ begin
 
     end if;
 
-    if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_REG8), 32) then
+    if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_REG8), 32) then
 
       reg_data_out(0) <= axi_ro_regs.reg8.field0;
       reg_data_out(19 downto 1) <= axi_ro_regs.reg8.field1;
@@ -362,6 +360,7 @@ begin
 
   p_output : process (clk, areset_n) is
   begin
+
     if (areset_n = '0') then
       rdata_i <= (others => '0');
     elsif (rising_edge(clk)) then
@@ -369,6 +368,7 @@ begin
         rdata_i <= reg_data_out;
       end if;
     end if;
+
   end process p_output;
 
 end behavior;

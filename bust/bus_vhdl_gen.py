@@ -1,6 +1,7 @@
 from bust.utils import indent_string
 from bust.vhdl import (
     async_process,
+    if_statement,
     library_clause,
     sync_process,
     comb_process,
@@ -427,9 +428,6 @@ class BusVHDLGen:
                 elif reg.mode == "pulse":
                     sig_name = "axi_pulse_regs_cycle."
 
-                par = "if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
-                par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
-                logic_string += indent_string(par, 2)
                 par = ""
                 if reg.sig_type == "fields":
 
@@ -447,8 +445,11 @@ class BusVHDLGen:
                 elif reg.sig_type == "sl":
                     par += sig_name + reg.name + " <= wdata(0);\n"
 
-                logic_string += indent_string(par, 3)
-                logic_string += indent_string("\nend if;\n", 2)
+                par = if_statement(
+                    f"unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_{reg.name}), {str(self.addr_width)})",
+                    par,
+                )
+                logic_string += indent_string(par, 2)
                 logic_string += "\n"
 
             logic_string += "end if;\n"
@@ -614,7 +615,7 @@ class BusVHDLGen:
         gen = [reg for reg in mod.registers if reg.mode == "ro" or reg.mode == "rw"]
         for reg in gen:
             par = (
-                "if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
+                "if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_"
             )
             par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
             logic_string += par
@@ -795,7 +796,7 @@ class BusVHDLGen:
                     par = "if"
                 else:
                     par = "elsif"
-                par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
+                par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_"
                 par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
                 logic_string += indent_string(par)
                 par = ""
@@ -889,7 +890,7 @@ class BusVHDLGen:
                 par = "if"
             else:
                 par = "elsif"
-            par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
+            par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_"
             par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
             logic_string += indent_string(par)
             par = ""
@@ -991,7 +992,7 @@ class BusVHDLGen:
             gen = [reg for reg in mod.registers if reg.stall]
             for reg in gen:
                 logic_string += indent_string(
-                    "if unsigned(ipb_in.ipb_addr) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_{}), {}) then\n".format(
+                    "if unsigned(ipb_in.ipb_addr) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_{}), {}) then\n".format(
                         reg.name.upper(), str(self.addr_width)
                     )
                 )

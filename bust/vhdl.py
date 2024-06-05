@@ -71,7 +71,7 @@ def async_process(
     if variables is not None:
         for var in variables:
             s += indent_string("variable " + var + ";\n")
-    s += "begin\n"
+    s += "begin\n\n"
 
     if active_low:
         polarity = 0
@@ -84,7 +84,7 @@ def async_process(
     )
 
     s += indent_string(if_str)
-    s += "end process " + process_name + ";\n"
+    s += "\nend process " + process_name + ";\n"
 
     return s
 
@@ -126,14 +126,16 @@ def comb_process_with_reset(
     return s
 
 
-def if_statement(condition, then_string):
+def if_statement(condition, then_string, end=True):
     s = f"if ({condition}) then\n"
     s += indent_string(then_string)
+    if end:
+        s += "end if;\n"
     return s
 
 
 def if_else_statement(condition, then_string, else_string=None):
-    s = if_statement(condition, then_string)
+    s = if_statement(condition, then_string, end=False)
     if else_string is not None:
         s += "\nelse\n"
         s += indent_string(else_string)
@@ -144,7 +146,7 @@ def if_else_statement(condition, then_string, else_string=None):
 def if_else_if_statement(condition, then_string, else_if_condition, else_if_string):
     s = f"if ({condition}) then\n"
     s += indent_string(then_string)
-    s += f"\nels{if_statement(else_if_condition, else_if_string)}\n"
+    s += f"\nels{if_statement(else_if_condition, else_if_string, end=False)}\n"
     s += "end if;\n"
     return s
 
