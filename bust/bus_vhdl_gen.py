@@ -59,8 +59,8 @@ class BusVHDLGen:
             s += "package " + self.bus_type + "_pkg is\n"
             s += "\n\n"
 
-            data_width_constant = "C_" + self.bus_type.upper() + "_DATA_WIDTH"
-            addr_width_constant = "C_" + self.bus_type.upper() + "_ADDR_WIDTH"
+            data_width_constant = "c_" + self.bus_type + "_data_width"
+            addr_width_constant = "c_" + self.bus_type + "_addr_width"
             data_sub_type = "t_" + self.bus_type + "_data"
             addr_sub_type = "t_" + self.bus_type + "_addr"
 
