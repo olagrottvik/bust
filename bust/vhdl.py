@@ -130,7 +130,7 @@ def if_statement(condition, then_string, end=True):
     s = f"if ({condition}) then\n"
     s += indent_string(then_string)
     if end:
-        s += "end if;\n"
+        s += "end if;"
     return s
 
 

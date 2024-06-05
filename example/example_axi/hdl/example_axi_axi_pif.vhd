@@ -127,56 +127,50 @@ begin
   begin
 
     if (areset_n = '0') then
-
-      axi_rw_regs_i <= c_example_axi_rw_regs;
+      axi_rw_regs_i        <= c_example_axi_rw_regs;
       axi_pulse_regs_cycle <= c_example_axi_pulse_regs;
-
     elsif (rising_edge(clk)) then
-
       -- Return PULSE registers to reset value every clock cycle
       axi_pulse_regs_cycle <= c_example_axi_pulse_regs;
 
-
       if (slv_reg_wren = '1') then
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg0), 32)) then
-            axi_rw_regs_i.reg0 <= wdata(0);
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg1), 32)) then
-            axi_rw_regs_i.reg1 <= wdata(0);
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg3), 32)) then
-            axi_rw_regs_i.reg3 <= wdata(7 downto 0);
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg5), 32)) then
-            axi_rw_regs_i.reg5 <= wdata;
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg7), 32)) then
-            axi_rw_regs_i.reg7.field0 <= wdata(0);
-            axi_rw_regs_i.reg7.field1 <= wdata(4 downto 1);
-            axi_rw_regs_i.reg7.field2 <= wdata(5);
-            axi_rw_regs_i.reg7.field3 <= wdata(20 downto 6);
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg9), 32)) then
-            axi_pulse_regs_cycle.reg9 <= wdata(0);
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg10), 32)) then
-            axi_pulse_regs_cycle.reg10 <= wdata(3 downto 0);
-          end if;
-
-          if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg11), 32)) then
-            axi_pulse_regs_cycle.reg11.field0 <= wdata(14 downto 0);
-            axi_pulse_regs_cycle.reg11.field1 <= wdata(15);
-          end if;
-
+        -- reg0
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg0), 32)) then
+          axi_rw_regs_i.reg0 <= wdata(0);
+        end if;
+        -- reg1
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg1), 32)) then
+          axi_rw_regs_i.reg1 <= wdata(0);
+        end if;
+        -- reg3
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg3), 32)) then
+          axi_rw_regs_i.reg3 <= wdata(7 downto 0);
+        end if;
+        -- reg5
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg5), 32)) then
+          axi_rw_regs_i.reg5 <= wdata;
+        end if;
+        -- reg7
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg7), 32)) then
+          axi_rw_regs_i.reg7.field0 <= wdata(0);
+          axi_rw_regs_i.reg7.field1 <= wdata(4 downto 1);
+          axi_rw_regs_i.reg7.field2 <= wdata(5);
+          axi_rw_regs_i.reg7.field3 <= wdata(20 downto 6);
+        end if;
+        -- reg9
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg9), 32)) then
+          axi_pulse_regs_cycle.reg9 <= wdata(0);
+        end if;
+        -- reg10
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg10), 32)) then
+          axi_pulse_regs_cycle.reg10 <= wdata(3 downto 0);
+        end if;
+        -- reg11
+        if (unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_reg11), 32)) then
+          axi_pulse_regs_cycle.reg11.field0 <= wdata(14 downto 0);
+          axi_pulse_regs_cycle.reg11.field1 <= wdata(15);
+        end if;
       end if;
-
     end if;
 
   end process p_mm_select_write;

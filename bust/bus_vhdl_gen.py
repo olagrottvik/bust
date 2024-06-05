@@ -398,27 +398,24 @@ class BusVHDLGen:
             ###################################################################
             # p_mm_select_write
             ###################################################################
-            reset_string = "\n"
+            reset_string = ""
             if mod.count_rw_regs() > 0:
-                reset_string += "axi_rw_regs_i <= c_" + mod.name + "_rw_regs;\n"
+                reset_string += f"axi_rw_regs_i        <= c_{mod.name}_rw_regs;"
             if mod.count_pulse_regs() > 0:
-                reset_string += (
-                    "axi_pulse_regs_cycle <= c_" + mod.name + "_pulse_regs;\n"
-                )
+                reset_string += f"\naxi_pulse_regs_cycle <= c_{mod.name}_pulse_regs;"
 
             logic_string = ""
             # create a generator for looping through all pulse regs
             if mod.count_pulse_regs() > 0:
                 logic_string += (
-                    "\n-- Return PULSE registers to reset value every clock cycle\n"
+                    "-- Return PULSE registers to reset value every clock cycle\n"
                 )
                 logic_string += (
                     "axi_pulse_regs_cycle <= c_" + mod.name + "_pulse_regs;\n\n"
                 )
 
-            logic_string += "\nif (slv_reg_wren = '1') then\n\n"
-
             # create a generator for looping through all rw and pulse regs
+            regs_str = ""
             gen = (
                 reg for reg in mod.registers if reg.mode == "rw" or reg.mode == "pulse"
             )
@@ -428,31 +425,33 @@ class BusVHDLGen:
                 elif reg.mode == "pulse":
                     sig_name = "axi_pulse_regs_cycle."
 
-                par = ""
+                reg_str = ""
                 if reg.sig_type == "fields":
 
                     for field in reg.fields:
-                        par += sig_name + reg.name + "." + field.name
-                        par += " <= wdata("
-                        par += field.get_pos_vhdl()
-                        par += ");\n"
+                        reg_str += sig_name + reg.name + "." + field.name
+                        reg_str += " <= wdata("
+                        reg_str += field.get_pos_vhdl()
+                        reg_str += ");\n"
 
                 elif reg.sig_type == "default":
-                    par += sig_name + reg.name + " <= wdata;\n"
+                    reg_str += sig_name + reg.name + " <= wdata;\n"
                 elif reg.sig_type == "slv":
-                    par += sig_name + reg.name + " <= wdata("
-                    par += str(reg.length - 1) + " downto 0);\n"
+                    reg_str += sig_name + reg.name + " <= wdata("
+                    reg_str += str(reg.length - 1) + " downto 0);\n"
                 elif reg.sig_type == "sl":
-                    par += sig_name + reg.name + " <= wdata(0);\n"
+                    reg_str += sig_name + reg.name + " <= wdata(0);\n"
 
-                par = if_statement(
+                par = f"-- {reg.name}\n"
+                par += if_statement(
                     f"unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_{reg.name}), {str(self.addr_width)})",
-                    par,
+                    reg_str,
                 )
-                logic_string += indent_string(par, 2)
-                logic_string += "\n"
+                regs_str += par
+                regs_str += "\n"
 
-            logic_string += "end if;\n"
+            if_condition = "slv_reg_wren = '1'"
+            logic_string += if_statement(if_condition, regs_str)
 
             if self.bus_reset == "async":
                 s += indent_string(
