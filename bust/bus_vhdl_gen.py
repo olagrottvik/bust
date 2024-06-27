@@ -1,5 +1,14 @@
 from bust.utils import indent_string
-from bust.vhdl import async_process, sync_process, comb_process, comb_process_with_reset
+from bust.vhdl import (
+    async_process,
+    if_statement,
+    library_clause,
+    sync_process,
+    comb_process,
+    comb_process_with_reset,
+    std_lib_declaration,
+    use_clause,
+)
 
 
 class BusVHDLGen:
@@ -45,15 +54,14 @@ class BusVHDLGen:
     def return_bus_pkg_VHDL(self):
         if self.bus_type == "axi":
 
-            s = "library ieee;\n"
-            s += "use ieee.std_logic_1164.all;\n"
+            s = std_lib_declaration(numeric_std=False)
             s += "\n"
 
             s += "package " + self.bus_type + "_pkg is\n"
-            s += "\n\n"
+            s += "\n"
 
-            data_width_constant = "C_" + self.bus_type.upper() + "_DATA_WIDTH"
-            addr_width_constant = "C_" + self.bus_type.upper() + "_ADDR_WIDTH"
+            data_width_constant = "c_" + self.bus_type + "_data_width"
+            addr_width_constant = "c_" + self.bus_type + "_addr_width"
             data_sub_type = "t_" + self.bus_type + "_data"
             addr_sub_type = "t_" + self.bus_type + "_addr"
 
@@ -64,14 +72,13 @@ class BusVHDLGen:
             par += " : natural := " + str(self.addr_width) + ";\n"
             par += "\n"
             par += "subtype " + data_sub_type + " is std_logic_vector("
-            par += data_width_constant + "-1 downto 0);\n"
+            par += data_width_constant + " - 1 downto 0);\n"
             par += "subtype " + addr_sub_type + " is std_logic_vector("
-            par += addr_width_constant + "-1 downto 0);\n"
+            par += addr_width_constant + " - 1 downto 0);\n"
             par += "\n"
             s += indent_string(par)
 
-            s += indent_string("type t_" + self.bus_type)
-            s += "_mosi is record\n"
+            s += indent_string(f"type t_{self.bus_type}_mosi is record\n")
             par = ""
             par += "araddr  : " + addr_sub_type + ";\n"
             par += "arvalid : std_logic;\n"
@@ -82,11 +89,10 @@ class BusVHDLGen:
             par += "wdata   : " + data_sub_type + ";\n"
             par += "wvalid  : std_logic;\n"
             s += indent_string(par, 2)
-            s += indent_string("end record;\n")
+            s += indent_string(f"end record t_{self.bus_type}_mosi;\n")
             s += "\n"
 
-            s += indent_string("type t_" + self.bus_type)
-            s += "_miso is record\n"
+            s += indent_string(f"type t_{self.bus_type}_miso is record\n")
             par = ""
             par += "arready : std_logic;\n"
             par += "awready : std_logic;\n"
@@ -97,10 +103,10 @@ class BusVHDLGen:
             par += "rvalid  : std_logic;\n"
             par += "wready  : std_logic;\n"
             s += indent_string(par, 2)
-            s += indent_string("end record;\n")
+            s += indent_string(f"end record t_{self.bus_type}_miso;\n")
             s += "\n"
 
-            s += "end " + self.bus_type + "_pkg;"
+            s += "end package " + self.bus_type + "_pkg;"
             s += "\n"
 
         return s
@@ -109,29 +115,31 @@ class BusVHDLGen:
         clk_name = self.clk_name
         reset_name = self.reset_name
 
-        s = "library ieee;\n"
-        s += "use ieee.std_logic_1164.all;\n"
-        s += "use ieee.numeric_std.all;\n"
+        s = std_lib_declaration()
         s += "\n"
         if self.comp_library != "work":
-            s += "library " + self.comp_library + ";\n"
+            s += f"{library_clause(self.comp_library)}\n"
         if self.bus_type == "ipbus":
-            s += "use " + self.comp_library + "." + self.bus_type + ".all;\n"
+            s += f"{use_clause(self.comp_library, self.bus_type)}\n"
         else:
-            s += "use " + self.comp_library + "." + self.bus_type + "_pkg.all;\n"
-        s += "use work." + mod.name + "_pif_pkg.all;\n\n"
+            s += f"{use_clause(self.comp_library, f'{self.bus_type}_pkg')}\n"
 
-        s += "entity " + mod.name + "_" + self.short_name + "_pif is\n\n"
+        s += f"{use_clause('work', f'{mod.name}_pif_pkg')}\n"
+
+        s += "\n"
+
+        s += "entity " + mod.name + "_" + self.short_name + "_pif is\n"
         s += indent_string("generic (\n")
         par = "-- " + self.bus_type.upper() + " Bus Interface Generics\n"
         par += (
             "g_"
             + self.short_name
-            + "_baseaddr        : std_logic_vector("
+            + "_baseaddr : std_logic_vector("
             + str(self.addr_width - 1)
         )
-        par += " downto 0) := (others => '0'));\n"
+        par += " downto 0) := (others => '0')\n"
         s += indent_string(par, 2)
+        s += indent_string(");\n")
 
         s += indent_string("port (")
 
@@ -141,73 +149,72 @@ class BusVHDLGen:
 
         if mod.count_rw_regs() > 0:
             par += (
-                self.short_name + "_rw_regs    : out t_" + mod.name + "_rw_regs    := "
+                self.short_name
+                + "_rw_regs    : out   t_"
+                + mod.name
+                + "_rw_regs    := "
             )
             par += "c_" + mod.name + "_rw_regs;\n"
 
         if mod.count_ro_regs() > 0:
             par += (
-                self.short_name + "_ro_regs    : in  t_" + mod.name + "_ro_regs    := "
+                self.short_name
+                + "_ro_regs    : in    t_"
+                + mod.name
+                + "_ro_regs    := "
             )
             par += "c_" + mod.name + "_ro_regs;\n"
 
         if mod.count_pulse_regs() > 0:
             par += (
-                self.short_name + "_pulse_regs : out t_" + mod.name + "_pulse_regs := "
+                self.short_name
+                + "_pulse_regs : out   t_"
+                + mod.name
+                + "_pulse_regs := "
             )
             par += "c_" + mod.name + "_pulse_regs;\n"
 
         par += "\n"
         par += "-- bus signals\n"
-        par += clk_name + "            : in  std_logic;\n"
-        par += reset_name + "       : in  std_logic;\n"
+        par += clk_name + "      : in    std_logic;\n"
+        par += reset_name + " : in    std_logic;\n"
 
         # Add bus-specific signals
         if self.bus_type == "axi":
 
-            par += "awaddr         : in  t_" + mod.name + "_addr;\n"
-            par += "awvalid        : in  std_logic;\n"
-            par += "awready        : out std_logic;\n"
-            par += "wdata          : in  t_" + mod.name + "_data;\n"
-            par += "wvalid         : in  std_logic;\n"
-            par += "wready         : out std_logic;\n"
-            par += "bresp          : out std_logic_vector(1 downto 0);\n"
-            par += "bvalid         : out std_logic;\n"
-            par += "bready         : in  std_logic;\n"
-            par += "araddr         : in  t_" + mod.name + "_addr;\n"
-            par += "arvalid        : in  std_logic;\n"
-            par += "arready        : out std_logic;\n"
-            par += "rdata          : out t_" + mod.name + "_data;\n"
-            par += "rresp          : out std_logic_vector(1 downto 0);\n"
-            par += "rvalid         : out std_logic;\n"
-            par += "rready         : in  std_logic\n"
+            par += "awaddr   : in    t_" + mod.name + "_addr;\n"
+            par += "awvalid  : in    std_logic;\n"
+            par += "awready  : out   std_logic;\n"
+            par += "wdata    : in    t_" + mod.name + "_data;\n"
+            par += "wvalid   : in    std_logic;\n"
+            par += "wready   : out   std_logic;\n"
+            par += "bresp    : out   std_logic_vector(1 downto 0);\n"
+            par += "bvalid   : out   std_logic;\n"
+            par += "bready   : in    std_logic;\n"
+            par += "araddr   : in    t_" + mod.name + "_addr;\n"
+            par += "arvalid  : in    std_logic;\n"
+            par += "arready  : out   std_logic;\n"
+            par += "rdata    : out   t_" + mod.name + "_data;\n"
+            par += "rresp    : out   std_logic_vector(1 downto 0);\n"
+            par += "rvalid   : out   std_logic;\n"
+            par += "rready   : in    std_logic\n"
 
         elif self.bus_type == "ipbus":
             par += "{}_in         : in  {};\n".format(self.short_name, self.in_type)
             par += "{}_out        : out {}\n".format(self.short_name, self.out_type)
 
-        par += ");\n"
         s += indent_string(par, 2)
-        s += "end " + mod.name + "_" + self.short_name + "_pif;\n\n"
+        s += indent_string(");\n")
+        s += "end entity " + mod.name + "_" + self.short_name + "_pif;\n\n"
 
         s += "architecture behavior of {}_{}_pif is\n\n".format(
             mod.name, self.short_name
         )
 
         if self.bus_type == "ipbus":
-            par = (
-                "constant C_BASEADDR : std_logic_vector(31 downto 0) := g_"
-                + self.short_name
-                + "_baseaddr;\n"
-            )
+            par = f"constant c_baseaddr : std_logic_vector(31 downto 0) := g_{self.short_name}_baseaddr;\n"
         else:
-            par = (
-                "constant C_BASEADDR : t_"
-                + self.short_name
-                + "_addr := g_"
-                + self.short_name
-                + "_baseaddr;\n"
-            )
+            par = f"constant c_baseaddr : t_{self.short_name}_addr := g_{self.short_name}_baseaddr;\n"
         s += indent_string(par)
 
         s += "\n"
@@ -217,15 +224,12 @@ class BusVHDLGen:
             par += "-- internal signal for readback" + "\n"
             s += indent_string(par)
             if mod.count_rw_regs() > 0:
-                par = "signal " + self.short_name + "_rw_regs_i    : t_"
-                par += mod.name + "_rw_regs := c_" + mod.name + "_rw_regs;\n"
+                par = f"signal {self.short_name}_rw_regs_i        : t_{mod.name}_rw_regs    := c_{mod.name}_rw_regs;\n"
                 s += indent_string(par)
             if mod.count_pulse_regs() > 0:
-                par = "signal " + self.short_name + "_pulse_regs_i : t_"
-                par += mod.name + "_pulse_regs := c_" + mod.name + "_pulse_regs;\n"
+                par = f"signal {self.short_name}_pulse_regs_i     : t_{mod.name}_pulse_regs := c_{mod.name}_pulse_regs;\n"
                 s += indent_string(par)
-                par = "signal " + self.short_name + "_pulse_regs_cycle : t_"
-                par += mod.name + "_pulse_regs := c_" + mod.name + "_pulse_regs;\n"
+                par = f"signal {self.short_name}_pulse_regs_cycle : t_{mod.name}_pulse_regs := c_{mod.name}_pulse_regs;\n"
                 s += indent_string(par)
 
         s += "\n"
@@ -241,27 +245,26 @@ class BusVHDLGen:
     def return_axi_pif_VHDL(self, mod, clk_name, reset_name):
         s = ""
         par = "-- internal bus signals for readback\n"
-        par += "signal awaddr_i      : t_" + mod.name + "_addr;\n"
-        par += "signal awready_i     : std_logic;\n"
-        par += "signal wready_i      : std_logic;\n"
-        par += "signal bresp_i       : std_logic_vector(1 downto 0);\n"
-        par += "signal bvalid_i      : std_logic;\n"
-        par += "signal araddr_i      : t_" + mod.name + "_addr;\n"
-        par += "signal arready_i     : std_logic;\n"
-        par += "signal rdata_i       : t_" + mod.name + "_data;\n"
-        par += "signal rresp_i       : std_logic_vector(1 downto 0);\n"
-        par += "signal rvalid_i      : std_logic;\n\n"
+        par += "signal awaddr_i  : t_" + mod.name + "_addr;\n"
+        par += "signal awready_i : std_logic;\n"
+        par += "signal wready_i  : std_logic;\n"
+        par += "signal bresp_i   : std_logic_vector(1 downto 0);\n"
+        par += "signal bvalid_i  : std_logic;\n"
+        par += "signal araddr_i  : t_" + mod.name + "_addr;\n"
+        par += "signal arready_i : std_logic;\n"
+        par += "signal rdata_i   : t_" + mod.name + "_data;\n"
+        par += "signal rresp_i   : std_logic_vector(1 downto 0);\n"
+        par += "signal rvalid_i  : std_logic;\n\n"
 
         par += "signal slv_reg_rden : std_logic;\n"
         par += "signal slv_reg_wren : std_logic;\n"
-        par += "signal reg_data_out : t_" + mod.name + "_data;\n"
-        par += "-- signal byte_index   : integer" + "; -- unused\n\n"
+        par += "signal reg_data_out : t_" + mod.name + "_data;\n\n"
         s += indent_string(par)
 
         s += "begin\n\n"
 
         if mod.count_rw_regs() > 0:
-            s += indent_string("axi_rw_regs <= axi_rw_regs_i") + ";\n"
+            s += indent_string("axi_rw_regs    <= axi_rw_regs_i") + ";\n"
         if mod.count_pulse_regs() > 0:
             s += indent_string("axi_pulse_regs <= axi_pulse_regs_i") + ";\n"
         if mod.count_rw_regs() + mod.count_pulse_regs() > 0:
@@ -395,27 +398,24 @@ class BusVHDLGen:
             ###################################################################
             # p_mm_select_write
             ###################################################################
-            reset_string = "\n"
+            reset_string = ""
             if mod.count_rw_regs() > 0:
-                reset_string += "axi_rw_regs_i <= c_" + mod.name + "_rw_regs;\n"
+                reset_string += f"axi_rw_regs_i        <= c_{mod.name}_rw_regs;"
             if mod.count_pulse_regs() > 0:
-                reset_string += (
-                    "axi_pulse_regs_cycle <= c_" + mod.name + "_pulse_regs;\n"
-                )
+                reset_string += f"\naxi_pulse_regs_cycle <= c_{mod.name}_pulse_regs;"
 
             logic_string = ""
             # create a generator for looping through all pulse regs
             if mod.count_pulse_regs() > 0:
                 logic_string += (
-                    "\n-- Return PULSE registers to reset value every clock cycle\n"
+                    "-- Return PULSE registers to reset value every clock cycle\n"
                 )
                 logic_string += (
                     "axi_pulse_regs_cycle <= c_" + mod.name + "_pulse_regs;\n\n"
                 )
 
-            logic_string += "\nif (slv_reg_wren = '1') then\n\n"
-
             # create a generator for looping through all rw and pulse regs
+            regs_str = ""
             gen = (
                 reg for reg in mod.registers if reg.mode == "rw" or reg.mode == "pulse"
             )
@@ -425,31 +425,33 @@ class BusVHDLGen:
                 elif reg.mode == "pulse":
                     sig_name = "axi_pulse_regs_cycle."
 
-                par = "if unsigned(awaddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
-                par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
-                logic_string += indent_string(par, 2)
-                par = ""
+                reg_str = ""
                 if reg.sig_type == "fields":
 
                     for field in reg.fields:
-                        par += sig_name + reg.name + "." + field.name
-                        par += " <= wdata("
-                        par += field.get_pos_vhdl()
-                        par += ");\n"
+                        reg_str += sig_name + reg.name + "." + field.name
+                        reg_str += " <= wdata("
+                        reg_str += field.get_pos_vhdl()
+                        reg_str += ");\n"
 
                 elif reg.sig_type == "default":
-                    par += sig_name + reg.name + " <= wdata;\n"
+                    reg_str += sig_name + reg.name + " <= wdata;\n"
                 elif reg.sig_type == "slv":
-                    par += sig_name + reg.name + " <= wdata("
-                    par += str(reg.length - 1) + " downto 0);\n"
+                    reg_str += sig_name + reg.name + " <= wdata("
+                    reg_str += str(reg.length - 1) + " downto 0);\n"
                 elif reg.sig_type == "sl":
-                    par += sig_name + reg.name + " <= wdata(0);\n"
+                    reg_str += sig_name + reg.name + " <= wdata(0);\n"
 
-                logic_string += indent_string(par, 3)
-                logic_string += indent_string("\nend if;\n", 2)
-                logic_string += "\n"
+                par = f"-- {reg.name}\n"
+                par += if_statement(
+                    f"unsigned(awaddr_i) = resize(unsigned(c_baseaddr) + unsigned(c_addr_{reg.name}), {str(self.addr_width)})",
+                    reg_str,
+                )
+                regs_str += par
+                regs_str += "\n"
 
-            logic_string += "end if;\n"
+            if_condition = "slv_reg_wren = '1'"
+            logic_string += if_statement(if_condition, regs_str)
 
             if self.bus_reset == "async":
                 s += indent_string(
@@ -612,7 +614,7 @@ class BusVHDLGen:
         gen = [reg for reg in mod.registers if reg.mode == "ro" or reg.mode == "rw"]
         for reg in gen:
             par = (
-                "if unsigned(araddr_i) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
+                "if unsigned(araddr_i) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_"
             )
             par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
             logic_string += par
@@ -793,7 +795,7 @@ class BusVHDLGen:
                     par = "if"
                 else:
                     par = "elsif"
-                par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
+                par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_"
                 par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
                 logic_string += indent_string(par)
                 par = ""
@@ -887,7 +889,7 @@ class BusVHDLGen:
                 par = "if"
             else:
                 par = "elsif"
-            par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_"
+            par += " unsigned(ipb_in.ipb_addr) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_"
             par += reg.name.upper() + "), " + str(self.addr_width) + ") then\n\n"
             logic_string += indent_string(par)
             par = ""
@@ -989,7 +991,7 @@ class BusVHDLGen:
             gen = [reg for reg in mod.registers if reg.stall]
             for reg in gen:
                 logic_string += indent_string(
-                    "if unsigned(ipb_in.ipb_addr) = resize(unsigned(C_BASEADDR) + unsigned(C_ADDR_{}), {}) then\n".format(
+                    "if unsigned(ipb_in.ipb_addr) = resize(unsigned(c_baseaddr) + unsigned(C_ADDR_{}), {}) then\n".format(
                         reg.name.upper(), str(self.addr_width)
                     )
                 )

@@ -1,14 +1,13 @@
 library ieee;
-use ieee.std_logic_1164.all;
+  use ieee.std_logic_1164.all;
 
 package axi_pkg is
 
+  constant c_axi_data_width : natural := 32;
+  constant c_axi_addr_width : natural := 32;
 
-  constant C_AXI_DATA_WIDTH : natural := 32;
-  constant C_AXI_ADDR_WIDTH : natural := 32;
-
-  subtype t_axi_data is std_logic_vector(C_AXI_DATA_WIDTH-1 downto 0);
-  subtype t_axi_addr is std_logic_vector(C_AXI_ADDR_WIDTH-1 downto 0);
+  subtype t_axi_data is std_logic_vector(c_axi_data_width - 1 downto 0);
+  subtype t_axi_addr is std_logic_vector(c_axi_addr_width - 1 downto 0);
 
   type t_axi_mosi is record
     araddr  : t_axi_addr;
@@ -19,7 +18,7 @@ package axi_pkg is
     rready  : std_logic;
     wdata   : t_axi_data;
     wvalid  : std_logic;
-  end record;
+  end record t_axi_mosi;
 
   type t_axi_miso is record
     arready : std_logic;
@@ -30,6 +29,6 @@ package axi_pkg is
     rresp   : std_logic_vector(1 downto 0);
     rvalid  : std_logic;
     wready  : std_logic;
-  end record;
+  end record t_axi_miso;
 
-end axi_pkg;
+end package axi_pkg;
